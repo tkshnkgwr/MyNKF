@@ -2,12 +2,20 @@
 
 👉 **[日本語版のドキュメントはこちら (Japanese Version is here)](README.ja.md)**
 
-A lightweight, high-performance command-line utility that clones the classic Japanese character encoding conversion tool `nkf` (Network Kanji Filter), optimized specifically for Windows PCs with limited resources.
+A lightweight, high-performance Japanese character encoding conversion utility (CLI & GUI editions) modeled after the classic `nkf` (Network Kanji Filter), optimized specifically for Windows PCs with limited resources.
 
-Built in **100% pure Rust** using only the standard library (`std`) to keep the binary size extremely small (~250 KB when stripped) and ensure zero external dependency vulnerabilities.
+Its core encoding detection and conversion logic is implemented in **100% pure Rust** using only the standard library (`std`).
+The CLI version (`mynkf`) has zero external dependency vulnerabilities and maintains an extremely small binary footprint (~250 KB when stripped).
+The GUI version (`mynkf-gui`) leverages `eframe`/`egui` to provide an ultra-lightweight desktop application that directly calls Win32 APIs (DwmSetWindowAttribute and CreateMutexW via direct FFI) for a modern, borderless window styling with a minimal binary size and compile-time overhead.
 
 ## Features
 
+- **GUI Version (`mynkf-gui`) Batch Operations**:
+  - Drag and drop files directly onto the UI to auto-detect their encoding and newline format instantly.
+  - Choose destination encoding/newline options and apply batch conversions to files in place.
+  - Built-in multi-launch prevention (Named Mutex) to avoid wasted background processes.
+  - Custom borderless, transparent frame design using direct Win32 FFI for dwmapi controls.
+  - Text playground for copying, pasting, and converting text with live preview and clipboard integrations.
 - **Character Encoding Conversion**:
   - `UTF-8` ⇆ `EUC-JP`
   - `Shift-JIS` ⇆ `EUC-JP`
@@ -18,7 +26,7 @@ Built in **100% pure Rust** using only the standard library (`std`) to keep the 
   - When `--size` is specified, it displays the formatted file size (e.g., `UTF-8 (LF) [1.2 KB]`; printed for `BINARY` files too). You can combine both options.
 - **System Options**:
   - `-h`, `--help` displays a comprehensive CLI manual.
-  - `-v`, `--version` or `--versio` (maintained for backward compatibility with `nkf`) displays the exact utility version.
+  - `-v`, `--version` or `--versio` (maintained for backward compatibility with `nkf`) displays the exact utility version (`v1.5.0`).
 - **Newline Normalization**:
   - Auto-converts to `CRLF` when outputting to `Shift-JIS`, and to `LF` for `EUC-JP` or `UTF-8`.
 - **Half-width Katakana Preservation**:
@@ -34,32 +42,46 @@ Built in **100% pure Rust** using only the standard library (`std`) to keep the 
 To compile and run this tool locally on Windows:
 
 ```bash
-# Clone or copy the source code to main.rs
-cargo new MyNKF --bin
+# Navigate to the repository
 cd MyNKF
 
-# Replace src/main.rs with the provided Rust code.
-# Build stripped release version for minimal binary size
+# Run tests to verify logic integrity
+cargo test
+
+# Build stripped release version for both CLI & GUI binaries
 cargo build --release
 ```
 
+Once compilation completes, the following executables will be available under `target/release/`:
+- `mynkf.exe` (CLI character converter)
+- `mynkf-gui.exe` (GUI desktop character converter)
+
 ### Usage Examples
+
+#### CLI Edition (`mynkf`)
 
 ```powershell
 # Display help information
-MyNKF --help
+cargo run --bin mynkf -- --help
 
-# Display utility version
-MyNKF --version
+# Guess file encoding (displays size too)
+cargo run --bin mynkf -- --guess --size input.txt
 
-# Guess the encoding of a file
-MyNKF --guess input.txt
-
-# Convert input.txt to Shift-JIS and write to stdout
-MyNKF -s input.txt > output_sjis.txt
+# Convert input.txt to Shift-JIS and write to a file
+cargo run --bin mynkf -- -s input.txt > output_sjis.txt
 
 # Pipe support
-type input_utf8.txt | MyNKF -e > output_euc.txt
+type input_utf8.txt | cargo run --bin mynkf -- -e > output_euc.txt
+```
+
+#### GUI Edition (`mynkf-gui`)
+
+```powershell
+# Run GUI version directly
+cargo run --bin mynkf-gui
+
+# Launch final built GUI binary
+.\target\release\mynkf-gui.exe
 ```
 
 ## License

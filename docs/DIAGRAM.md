@@ -96,4 +96,51 @@ graph TD
     C3 -->|Clipboard Copier / ZIP Download| User
     C4 -->|Clipboard Copier / ZIP Download| User
     C5 -->|Clipboard Copier / ZIP Download| User
+
+---
+
+## 4. デスクトップGUIアプリ (`mynkf-gui`) 内部イベントループと制御
+
+eframe/egui アプリケーションのライフサイクル、Win32 APIを直接制御する直接 FFI 呼び出し、およびユーザーインターフェースイベントの流れです。
+
+```mermaid
+graph TD
+    subgraph mynkf-gui [mynkf-gui アプリケーション]
+        Start[起動] --> PreventDouble[1. 二重起動防止: Named Mutex]
+        PreventDouble -->|既に Mutex 存在| Exit[即座に正常終了 exit 0]
+        PreventDouble -->|新規起動| Init[2. アプリケーション初期化: CreationContext]
+        
+        Init --> LoadFonts[3. Windowsシステム日本語フォントの自動走査・動的ロード]
+        LoadFonts --> StartLoop[4. eframe イベントループ開始]
+        
+        subgraph WindowControl [ウィンドウの描画とネイティブ制御]
+            StartLoop --> FirstFrame{初回フレーム?}
+            FirstFrame -->|YES| HideShadow[5. Win32 FFI: DwmSetWindowAttribute 影・枠完全削除]
+            FirstFrame -->|NO| DrawWindow[6. egui: CentralPanel 角丸・外枠描画]
+            HideShadow --> DrawWindow
+        end
+        
+        subgraph CustomHeader [カスタムタイトルバー制御]
+            DrawWindow --> Header[7. 自作タイトルバーヘッダー]
+            Header -->|ドラッグ検知| WindowDrag[8. ViewportCommand::StartDragOS ウィンドウ移動処理]
+            Header -->|X ボタンクリック| WindowClose[9. ViewportCommand::Close ウィンドウ閉じる]
+            Header -->|最小化ボタン| WindowMin[10. ViewportCommand::Minimized ウィンドウ最小化]
+        end
+        
+        subgraph TabPanel [タブ機能とデータフロー]
+            DrawWindow --> TabSelect{タブ選択状態}
+            TabSelect -->|ファイル一括変換| TabFile[11. ファイル一括変換パネル]
+            TabSelect -->|テキスト直接変換| TabText[12. テキスト直接変換パネル]
+            
+            TabFile -->|ドラッグ＆ドロップ| Dnd[13. dropped_files のファイルパス取得]
+            TabFile -->|ファイルダイアログ| Picker[14. rfd::FileDialog からパス取得]
+            Dnd --> FileList[15. 変換リスト追加 & mynkf ライブラリで文字コード・改行自動解析]
+            Picker --> FileList
+            FileList -->|変換実行ボタン| LibConv[16. mynkf ライブラリで文字/改行変換 & 上書き保存]
+            
+            TabText -->|文字入力| Realtime[17. 入力テキスト保持]
+            Realtime -->|コピーボタン| Clip[18. mynkf で出力文字コードのバイト列を模擬デコードしクリップボード転送]
+        end
+    end
+```
 ```

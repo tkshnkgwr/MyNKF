@@ -64,7 +64,7 @@
 
 ## 4. 自動単体テスト (`cargo test`)
 
-コアロジックの正確性を保証するため、`src/main.rs` の末尾に 11 個のテストケースからなるテストモジュールを実装し、すべて合格しました。
+コアロジックの正確性を保証するため、`src/lib.rs` の末尾に 17 個のテストケースからなるテストモジュールを実装し、すべて合格しました。
 
 ### 4.1 テスト項目と結果
 - **`test_guess_encoding_ascii`**: すべてが ASCII 範囲内のバイト列を `ASCII` と正しく判定すること。(合格)
@@ -73,26 +73,53 @@
 - **`test_guess_encoding_eucjp`**: EUC-JP 特有バイト（"日本語" in EUC-JP など）を `EUC-JP` と判定すること。(合格)
 - **`test_guess_encoding_binary`**: 明らかなバイナリデータ（非テキスト）を `BINARY` と判定すること。(合格)
 - **`test_sjis_to_eucjp_coords`**: Shift_JIS 座標から EUC-JP 座標への変換が正確に行われること。(合格)
-- **`test_eucjp_to_sjis_coords`**: EUC-JP 座標から Shift_JIS 座標への変換が正確に行われること。※バグ修正済み(合格)
+- **`test_eucjp_to_sjis_coords`**: EUC-JP 座標から Shift_JIS 座標への変換が正確に行われること。(合格)
 - **`test_conversion_utf8_to_sjis`**: UTF-8 文字列から Shift_JIS バイト列への相互変換および改行コード `CRLF` の強制変換が正常に動作すること。(合格)
 - **`test_conversion_sjis_to_utf8`**: Shift_JIS バイト列から UTF-8 への復元が正常に動作すること。(合格)
 - **`test_conversion_fallback`**: 変換先エンコーディングにマッピングを持たない外字（絵文字など）を `??` に安全にフォールバックすること。(合格)
 - **`test_half_width_kana`**: 半角カタカナ（`ｱ` など）がエンコーディング変換時に切り詰め・文字化けせず、対応するコードポイントに正しくマッピングされること。(合格)
+- **`test_count_lines`**: テキストデータの論理行数を正しくカウントすること。(合格)
+- **`test_detect_line_ending`**: LF / CRLF / CR / MIXED / NONE をバイト列から正しく判別すること。(合格)
+- **`test_wildcard_match`**: グロブの簡易ワイルドカード比較が正しく機能すること。(合格)
+- **`test_expand_wildcard_normal`**: 存在するファイルに対してワイルドカード展開が機能すること。(合格)
+- **`test_glob_limit_exceeded`**: 100ファイル上限を超えた際に適切にエラーを返すこと。(合格)
+- **`test_format_size`**: バイトサイズを B / KB / MB / GB 単位に正しくフォーマットすること。(合格)
 
 ### 4.2 テスト実行ログ
 ```text
-running 11 tests
-test tests::test_sjis_to_eucjp_coords ... ok
+running 17 tests
+test tests::test_eucjp_to_sjis_coords ... ok
 test tests::test_guess_encoding_ascii ... ok
+test tests::test_count_lines ... ok
+test tests::test_detect_line_ending ... ok
+test tests::test_format_size ... ok
 test tests::test_guess_encoding_binary ... ok
 test tests::test_guess_encoding_eucjp ... ok
 test tests::test_guess_encoding_sjis ... ok
 test tests::test_guess_encoding_utf8 ... ok
-test tests::test_eucjp_to_sjis_coords ... ok
-test tests::test_conversion_sjis_to_utf8 ... ok
-test tests::test_half_width_kana ... ok
-test tests::test_conversion_utf8_to_sjis ... ok
 test tests::test_conversion_fallback ... ok
+test tests::test_sjis_to_eucjp_coords ... ok
+test tests::test_wildcard_match ... ok
+test tests::test_conversion_sjis_to_utf8 ... ok
+test tests::test_conversion_utf8_to_sjis ... ok
+test tests::test_half_width_kana ... ok
+test tests::test_expand_wildcard_normal ... ok
+test tests::test_glob_limit_exceeded ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
 ```
+
+---
+
+## 5. デスクトップGUIアプリ (`mynkf-gui`) の手動検証結果
+デスクトップGUI版について、Windows 11 実機を用いて手動で行った検証項目および結果です。
+
+| 検証項目 | 操作・検証手順 | 期待される結果 | 合否 |
+| :--- | :--- | :--- | :--- |
+| **二重起動防止** | `mynkf-gui.exe` をすでに起動した状態で、コマンドラインまたはエクスプローラーから再度 `mynkf-gui.exe` を起動する。 | 後から起動したプロセスが画面表示されることなく、即座に正常終了すること。 | **合格** |
+| **枠・影の完全排除** | GUI版を起動し、ウィンドウの外観を観察する。 | デフォルトのOSの境界線（白い枠）や透過時のウィンドウ影が完全に非表示になり、カスタム外枠線のみのフラットデザインになっていること。 | **合格** |
+| **カスタムヘッダー制御** | ヘッダーバーの任意箇所（ボタン外）をドラッグして移動する。右上の `[X]` / `[-]` ボタンをクリックする。 | 遅延なく滑らかにウィンドウ移動ができること。閉じる/最小化の操作が正常に動作すること。 | **合格** |
+| **日本語表示の確認** | 画面に表示される漢字・ひらがな・カタカナ、およびテキスト入力欄を観察する。 | フォントが動的ロードされ、文字化けや文字崩れ（豆腐化）なく美しく表示されていること。 | **合格** |
+| **ファイル一括変換** | 複数のテキストファイルをドラッグ＆ドロップ（またはファイル追加ボタン）し、一括変換を実行する。 | 現在の文字コード・改行コードが即時自動解析され、一括変換を実行した際にすべてのファイルが指定エンコードで正常に上書き保存されること。 | **合格** |
+| **テキスト直接変換** | 「テキスト直接変換」タブで日本語を入力し、変換設定（Shift-JIS、CRLFなど）を選択してコピーする。 | クリップボードに正しく再現された文字が転送され、メモ帳等に貼り付けた際に文字化けせず改行コードが指定通り適用されていること。 | **合格** |
+

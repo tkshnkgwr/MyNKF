@@ -2,12 +2,20 @@
 
 👉 **[English Version is here](README.md)**
 
-低スペック・リソース制限のある Windows 環境での超高速・低負荷な動作を最優先に設計された、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の軽量互換コマンドラインユーティリティです。
+低スペック・リソース制限のある Windows 環境での超高速・低負荷な動作を最優先に設計された、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の軽量互換ユーティリティ（CLI版 ＆ GUI版）です。
 
-**100% Rust 標準ライブラリのみ** で実装されており、外部クレートへの依存が完全に排除されています。これによりセキュリティリスクをゼロにし、コンパイル後のバイナリサイズを最小限（リリースビルド時 約200〜250KB）に抑えています。
+**100% Rust 標準ライブラリのみ** で主要な文字コード判定・変換アルゴリズムが実装されています。
+CLI版 (`mynkf`) は外部クレートへの依存が完全に排除され、コンパイル後のバイナリサイズを最小限（リリースビルド時 約200〜250KB）に抑えています。
+GUI版 (`mynkf-gui`) は、`eframe`/`egui` フレームワークを使用した超軽量・高速常駐型のデスクトップGUIアプリで、外部クレートサイズを極力小さく保ちつつ Windows API の直接制御 (FFI) を行うことで極小サイズを実現しています。
 
 ## 主な機能
 
+- **GUI版 (`mynkf-gui`) による一括操作**:
+  - ファイルのドラッグ＆ドロップまたはファイルダイアログにより、現在の文字コード/改行コードをリアルタイム自動判定。
+  - 出力文字コード・改行コードを選択し、一括で上書き変換可能。
+  - テキストコピペ領域により、リアルタイムに文字コード・改行コードの変換結果をプレビューしクリップボードにコピー可能。
+  - 多重起動を防止する Named Mutex を搭載し、無駄なプロセス常駐を防止。
+  - Windows API (DWM) を直接制御してウィンドウの枠や影を完全に消した、スタイリッシュな枠なし・透過フラットデザイン。
 - **文字コードの相互変換**:
   - `UTF-8` ⇆ `EUC-JP`
   - `Shift-JIS` ⇆ `EUC-JP`
@@ -18,7 +26,7 @@
   - さらに `--size` オプションを指定した場合、フォーマットされたファイルサイズを併記します（例: `UTF-8 (LF) [1.2 KB]`、`BINARY` の場合もサイズは併記されます）。両方の併用も可能です。
 - **システムヘルプ・バージョン情報**:
   - `-h` / `--help`: 詳細なコマンドラインヘルプおよび対応オプション一覧を表示します。
-  - `-v` / `--version` / `--versio`: ユーティリティのバージョン情報（v1.4.0）を表示します（`--versio` は本家 `nkf` との完全な互換性を維持するためのエイリアスです）。
+  - `-v` / `--version` / `--versio`: ユーティリティのバージョン情報（v1.5.0）を表示します（`--versio` は本家 `nkf` との完全な互換性を維持するためのエイリアスです）。
 - **改行コードの自動・明示変換**:
   - EUC-JP・UTF-8変換時: 改行コードを `LF` に正規化。
   - Shift-JIS変換時: 改行コードを `CRLF` に正規化。
@@ -36,33 +44,46 @@
 Windows PC で本プログラムをビルド・使用するには以下の手順を行います：
 
 ```powershell
-# プロジェクトの作成
-cargo new MyNKF --bin
+# プロジェクトディレクトリに移動
 cd MyNKF
 
-# src/main.rs を提供された Rust コードで置き換えます。
+# テストの実行 (デグレ検証)
+cargo test
 
-# リリースビルド（極小バイナリ・最適化）
+# リリースビルド（CLI版 & GUI版の双方を極小・最適化ビルド）
 cargo build --release
 ```
 
-### コマンド実行例
+ビルドが完了すると、`target/release/` ディレクトリ内に以下のバイナリが生成されます。
+- `mynkf.exe` (CLI版文字コードコンバータ)
+- `mynkf-gui.exe` (GUI版文字コードコンバータ)
+
+### 実行例
+
+#### CLI版 (`mynkf`)
 
 ```powershell
 # ヘルプ情報を表示する
-MyNKF --help
+cargo run --bin mynkf -- --help
 
-# バージョン情報を表示する
-MyNKF --version
-
-# ファイルの文字コードを推測する
-MyNKF --guess input.txt
+# ファイルの文字コードを推測する (ファイルサイズも併記)
+cargo run --bin mynkf -- --guess --size input.txt
 
 # input.txt を Shift-JIS (CRLF) に変換してファイルへ書き出す
-MyNKF -s input.txt > output_sjis.txt
+cargo run --bin mynkf -- -s input.txt > output_sjis.txt
 
 # パイプライン連携 (標準入出力)
-type input_utf8.txt | MyNKF -e > output_euc.txt
+type input_utf8.txt | cargo run --bin mynkf -- -e > output_euc.txt
+```
+
+#### GUI版 (`mynkf-gui`)
+
+```powershell
+# GUI版を起動する
+cargo run --bin mynkf-gui
+
+# リリース用単体実行バイナリの起動
+.\target\release\mynkf-gui.exe
 ```
 
 ## ライセンス
