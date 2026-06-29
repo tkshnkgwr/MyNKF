@@ -1,5 +1,5 @@
 // =========================================================================
-// NKF-Win Rust (Standard Library Only Edition)
+// MyNKF (Standard Library Only Edition)
 // Compiled Size: ~250KB (stripped release build)
 // UPDATE 2026-06-29: Windows10/11低リソース環境用・超軽量文字コードコンバータ
 // =========================================================================
@@ -29,6 +29,208 @@ impl Encoding {
             Encoding::EucJp => "EUC-JP",
             Encoding::Unknown => "BINARY",
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LineEnding {
+    Lf,
+    Crlf,
+    Cr,
+    Mixed,
+    None,
+}
+
+impl LineEnding {
+    fn as_str(&self) -> &'static str {
+        match self {
+            LineEnding::Lf => "LF",
+            LineEnding::Crlf => "CRLF",
+            LineEnding::Cr => "CR",
+            LineEnding::Mixed => "MIXED",
+            LineEnding::None => "NONE",
+        }
+    }
+}
+
+fn detect_line_ending(bytes: &[u8]) -> LineEnding {
+    let mut has_lf = false;
+    let mut has_crlf = false;
+    let mut has_cr = false;
+
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'\r' {
+            if i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                has_crlf = true;
+                i += 2;
+            } else {
+                has_cr = true;
+                i += 1;
+            }
+        } else if bytes[i] == b'\n' {
+            has_lf = true;
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    match (has_lf, has_crlf, has_cr) {
+        (true, false, false) => LineEnding::Lf,
+        (false, true, false) => LineEnding::Crlf,
+        (false, false, true) => LineEnding::Cr,
+        (false, false, false) => LineEnding::None,
+        _ => LineEnding::Mixed,
+    }
+}
+
+fn count_lines(bytes: &[u8]) -> usize {
+    if bytes.is_empty() {
+        return 0;
+    }
+    let mut count = 0;
+    let mut i = 0;
+    let mut ends_with_newline = false;
+    while i < bytes.len() {
+        if bytes[i] == b'\n' {
+            count += 1;
+            ends_with_newline = true;
+            i += 1;
+        } else if bytes[i] == b'\r' {
+            count += 1;
+            ends_with_newline = true;
+            if i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                i += 2;
+            } else {
+                i += 1;
+            }
+        } else {
+            ends_with_newline = false;
+            i += 1;
+        }
+    }
+    if !ends_with_newline {
+        count += 1;
+    }
+    count
+}
+
+const MAX_GLOB_FILES: usize = 100;
+
+fn wildcard_match(pattern: &str, text: &str) -> bool {
+    let pattern_chars: Vec<char> = pattern.chars().collect();
+    let text_chars: Vec<char> = text.chars().collect();
+    let mut p_idx = 0;
+    let mut t_idx = 0;
+    let mut p_star = None;
+    let mut t_star = None;
+
+    while t_idx < text_chars.len() {
+        if p_idx < pattern_chars.len() && (pattern_chars[p_idx] == '?' || pattern_chars[p_idx] == text_chars[t_idx]) {
+            p_idx += 1;
+            t_idx += 1;
+        } else if p_idx < pattern_chars.len() && pattern_chars[p_idx] == '*' {
+            p_star = Some(p_idx);
+            t_star = Some(t_idx);
+            p_idx += 1;
+        } else if let Some(star) = p_star {
+            p_idx = star + 1;
+            t_star = Some(t_star.unwrap() + 1);
+            t_idx = t_star.unwrap();
+        } else {
+            return false;
+        }
+    }
+
+    while p_idx < pattern_chars.len() && pattern_chars[p_idx] == '*' {
+        p_idx += 1;
+    }
+
+    p_idx == pattern_chars.len()
+}
+
+fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String> {
+    if !arg.contains('*') && !arg.contains('?') {
+        files.push(arg.to_string());
+        if files.len() > MAX_GLOB_FILES {
+            return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
+        }
+        return Ok(());
+    }
+
+    let path = std::path::Path::new(arg);
+    let parent_dir = path.parent().unwrap_or_else(|| std::path::Path::new(""));
+    let file_pattern = match path.file_name().and_then(|f| f.to_str()) {
+        Some(p) => p,
+        None => {
+            files.push(arg.to_string());
+            return Ok(());
+        }
+    };
+
+    let dir_to_read = if parent_dir.as_os_str().is_empty() {
+        std::path::Path::new(".")
+    } else {
+        parent_dir
+    };
+
+    let entries = match std::fs::read_dir(dir_to_read) {
+        Ok(e) => e,
+        Err(err) => {
+            return Err(format!("Failed to read directory '{:?}': {}", dir_to_read, err));
+        }
+    };
+
+    let mut matched_any = false;
+    for entry in entries {
+        if let Ok(entry) = entry {
+            let file_type = match entry.file_type() {
+                Ok(t) => t,
+                Err(_) => continue,
+            };
+            if file_type.is_file() {
+                if let Some(name_str) = entry.file_name().to_str() {
+                    if wildcard_match(&file_pattern.to_lowercase(), &name_str.to_lowercase()) {
+                        let matched_path = if parent_dir.as_os_str().is_empty() {
+                            std::path::PathBuf::from(entry.file_name())
+                        } else {
+                            parent_dir.join(entry.file_name())
+                        };
+                        if let Some(path_str) = matched_path.to_str() {
+                            files.push(path_str.to_string());
+                            matched_any = true;
+                            if files.len() > MAX_GLOB_FILES {
+                                return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if !matched_any {
+        files.push(arg.to_string());
+    }
+
+    Ok(())
+}
+
+fn format_size(bytes: usize) -> String {
+    let kb = 1024.0;
+    let mb = kb * 1024.0;
+    let gb = mb * 1024.0;
+    let bytes_f = bytes as f64;
+
+    if bytes_f >= gb {
+        format!("{:.1} GB", bytes_f / gb)
+    } else if bytes_f >= mb {
+        format!("{:.1} MB", bytes_f / mb)
+    } else if bytes_f >= kb {
+        format!("{:.1} KB", bytes_f / kb)
+    } else {
+        format!("{} B", bytes)
     }
 }
 
@@ -433,13 +635,15 @@ fn encode_from_unicode(
 
 // UPDATE 2026-06-29: --help, -h, --version, --versio, -v オプションをコマンドライン引数として解析する機能を追加
 fn print_usage() {
-    println!("NKF-Win [Rust Standard Library Edition] v1.1.0");
-    println!("Usage: nkf-win [options] [file...]");
+    println!("MyNKF [Rust Standard Library Edition] v1.4.0");
+    println!("Usage: MyNKF [options] [file...]");
     println!("Options:");
     println!("  -w               Convert output to UTF-8 (LF)");
     println!("  -s               Convert output to Shift-JIS (CRLF)");
     println!("  -e               Convert output to EUC-JP (LF)");
     println!("  -g, --guess      Guess the character encoding of the input");
+    println!("  --line           Show line count in guess mode (ignored for BINARY)");
+    println!("  --size           Show formatted file size in guess mode");
     println!("  -d               Force Line Endings as LF");
     println!("  -c               Force Line Endings as CRLF");
     println!("  -h, --help       Show this help information");
@@ -452,7 +656,9 @@ fn main() -> io::Result<()> {
     
     let mut to_enc = Encoding::Utf8; // デフォルトUTF-8
     let mut is_guess = false;
-    let mut files = Vec::new();
+    let mut is_line = false;
+    let mut is_size = false;
+    let mut raw_files = Vec::new();
     let mut force_lf = false;
     let mut force_crlf = false;
 
@@ -467,7 +673,7 @@ fn main() -> io::Result<()> {
             print_usage();
             return Ok(());
         } else if arg == "--version" || arg == "--versio" || arg == "-v" {
-            println!("nkf-win v1.1.0");
+            println!("MyNKF v1.4.0");
             return Ok(());
         } else if arg == "-w" {
             to_enc = Encoding::Utf8;
@@ -477,14 +683,29 @@ fn main() -> io::Result<()> {
             to_enc = Encoding::EucJp;
         } else if arg == "-g" || arg == "--guess" {
             is_guess = true;
+        } else if arg == "--line" {
+            is_line = true;
+        } else if arg == "--size" {
+            is_size = true;
         } else if arg == "-d" {
             force_lf = true;
         } else if arg == "-c" {
             force_crlf = true;
         } else if arg.starts_with('-') {
-            // その他の未知のフラグは無視
+            eprintln!("Error: Unknown option '{}'", arg);
+            print_usage();
+            std::process::exit(1);
         } else {
-            files.push(arg.clone());
+            raw_files.push(arg.clone());
+        }
+    }
+
+    // ワイルドカード展開の適用と上限超過のチェック
+    let mut files = Vec::new();
+    for raw_file in raw_files {
+        if let Err(err) = expand_wildcard(&raw_file, &mut files) {
+            eprintln!("Error: {}", err);
+            std::process::exit(1);
         }
     }
 
@@ -505,7 +726,24 @@ fn main() -> io::Result<()> {
 
         if is_guess {
             let guessed = guess_encoding(&buffer);
-            println!("{}", guessed.as_str());
+            let mut out = guessed.as_str().to_string();
+            
+            if guessed != Encoding::Unknown {
+                let le = detect_line_ending(&buffer);
+                out.push_str(&format!(" ({})", le.as_str()));
+                
+                if is_line {
+                    let lines = count_lines(&buffer);
+                    out.push_str(&format!(" [{} lines]", lines));
+                }
+            }
+            
+            if is_size {
+                let sz = format_size(buffer.len());
+                out.push_str(&format!(" [{}]", sz));
+            }
+            
+            println!("{}", out);
         } else {
             let guessed = guess_encoding(&buffer);
             let unicode = decode_to_unicode(&buffer, guessed, &table);
@@ -542,7 +780,24 @@ fn main() -> io::Result<()> {
 
             if is_guess {
                 let guessed = guess_encoding(&buffer);
-                println!("{}: {}", file_path, guessed.as_str());
+                let mut out = guessed.as_str().to_string();
+                
+                if guessed != Encoding::Unknown {
+                    let le = detect_line_ending(&buffer);
+                    out.push_str(&format!(" ({})", le.as_str()));
+                    
+                    if is_line {
+                        let lines = count_lines(&buffer);
+                        out.push_str(&format!(" [{} lines]", lines));
+                    }
+                }
+                
+                if is_size {
+                    let sz = format_size(buffer.len());
+                    out.push_str(&format!(" [{}]", sz));
+                }
+                
+                println!("{}: {}", file_path, out);
             } else {
                 let guessed = guess_encoding(&buffer);
                 let unicode = decode_to_unicode(&buffer, guessed, &table);
@@ -688,5 +943,81 @@ mod tests {
 
         let encoded_euc = encode_from_unicode(&input_chars, Encoding::EucJp, &table, &unicode_to_jis, false);
         assert_eq!(encoded_euc, vec![0x8E, 0xB1]);
+    }
+
+    #[test]
+    fn test_detect_line_ending() {
+        assert_eq!(detect_line_ending(b"hello\nworld"), LineEnding::Lf);
+        assert_eq!(detect_line_ending(b"hello\r\nworld"), LineEnding::Crlf);
+        assert_eq!(detect_line_ending(b"hello\rworld"), LineEnding::Cr);
+        assert_eq!(detect_line_ending(b"hello\nworld\r\ntest"), LineEnding::Mixed);
+        assert_eq!(detect_line_ending(b"helloworld"), LineEnding::None);
+    }
+
+    #[test]
+    fn test_count_lines() {
+        assert_eq!(count_lines(b""), 0);
+        assert_eq!(count_lines(b"hello"), 1);
+        assert_eq!(count_lines(b"hello\n"), 1);
+        assert_eq!(count_lines(b"hello\nworld"), 2);
+        assert_eq!(count_lines(b"hello\r\nworld\n"), 2);
+    }
+
+    #[test]
+    fn test_wildcard_match() {
+        assert!(wildcard_match("*.txt", "hello.txt"));
+        assert!(wildcard_match("a*.txt", "apple.txt"));
+        assert!(wildcard_match("a?c.txt", "abc.txt"));
+        assert!(!wildcard_match("a?c.txt", "abbc.txt"));
+        assert!(wildcard_match("*", "anything"));
+    }
+
+    #[test]
+    fn test_expand_wildcard_normal() {
+        use std::fs::File;
+        let p1 = "temp_normal_1.txt";
+        let p2 = "temp_normal_2.txt";
+        File::create(p1).unwrap();
+        File::create(p2).unwrap();
+
+        let mut files = Vec::new();
+        let res = expand_wildcard("temp_normal_*.txt", &mut files);
+        assert!(res.is_ok());
+        assert!(files.contains(&p1.to_string()));
+        assert!(files.contains(&p2.to_string()));
+        assert_eq!(files.len(), 2);
+
+        std::fs::remove_file(p1).ok();
+        std::fs::remove_file(p2).ok();
+    }
+
+    #[test]
+    fn test_glob_limit_exceeded() {
+        use std::fs::File;
+        let mut created_paths = Vec::new();
+        for i in 0..=100 {
+            let path_str = format!("temp_test_limit_{}.txt", i);
+            File::create(&path_str).unwrap();
+            created_paths.push(path_str);
+        }
+
+        let mut files = Vec::new();
+        let res = expand_wildcard("temp_test_limit_*.txt", &mut files);
+        assert!(res.is_err());
+        assert_eq!(res.unwrap_err(), format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
+
+        for path in created_paths {
+            std::fs::remove_file(path).ok();
+        }
+    }
+
+    #[test]
+    fn test_format_size() {
+        assert_eq!(format_size(0), "0 B");
+        assert_eq!(format_size(500), "500 B");
+        assert_eq!(format_size(1024), "1.0 KB");
+        assert_eq!(format_size(2048 + 512), "2.5 KB");
+        assert_eq!(format_size(1024 * 1024), "1.0 MB");
+        assert_eq!(format_size(1024 * 1024 * 1024 * 3 + 1024 * 1024 * 1024 / 2), "3.5 GB");
     }
 }

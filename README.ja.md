@@ -1,4 +1,4 @@
-# NKF-Win Rust Utility (標準ライブラリ限定版)
+# MyNKF (標準ライブラリ限定版)
 
 👉 **[English Version is here](README.md)**
 
@@ -13,10 +13,12 @@
   - `Shift-JIS` ⇆ `EUC-JP`
   - `Shift-JIS` ⇆ `UTF-8`
 - **自動文字コード判定 (`--guess` オプション)**:
-  - 入力ストリームおよび複数ファイルの文字コードを自動判定し、`UTF-8`、`Shift_JIS`、`EUC-JP`、`ASCII`、`BINARY` のいずれかを返します。
+  - 入力ストリームおよび複数ファイルの文字コードを自動判定します。非 `BINARY` ファイルの場合は、判定された改行コード（LF / CRLF / CR / MIXED / NONE）も併せて表示します（例: `UTF-8 (LF)`）。
+  - さらに `--line` オプションを指定した場合、テキストファイルの論理行数も併記します（例: `UTF-8 (LF) [100 lines]`、`BINARY` の場合は表示されません）。
+  - さらに `--size` オプションを指定した場合、フォーマットされたファイルサイズを併記します（例: `UTF-8 (LF) [1.2 KB]`、`BINARY` の場合もサイズは併記されます）。両方の併用も可能です。
 - **システムヘルプ・バージョン情報**:
   - `-h` / `--help`: 詳細なコマンドラインヘルプおよび対応オプション一覧を表示します。
-  - `-v` / `--version` / `--versio`: ユーティリティのバージョン情報（v1.1.0）を表示します。
+  - `-v` / `--version` / `--versio`: ユーティリティのバージョン情報（v1.4.0）を表示します（`--versio` は本家 `nkf` との完全な互換性を維持するためのエイリアスです）。
 - **改行コードの自動・明示変換**:
   - EUC-JP・UTF-8変換時: 改行コードを `LF` に正規化。
   - Shift-JIS変換時: 改行コードを `CRLF` に正規化。
@@ -26,7 +28,8 @@
   - JIS X 0208 規格外の絵文字や特殊文字が検出された場合、エラーにせず安全に `??` (疑問符2つ) へ自動置換します。
 - **標準入出力（パイプ）および複数ファイル指定に対応**:
   - 引数なしの場合は標準入力 (`stdin`) からのパイプ入力を受け取り、標準出力 (`stdout`) へストリーム転送。
-  - 複数のファイルパスを纏めて引数に指定し、一括処理することも可能です。
+  - 複数のファイルパスを引数に指定し、一括処理することが可能です。
+  - Windows 環境（PowerShellやcmd.exe等）でもファイル指定にワイルドカード（`*` や `?`）を使用できます（自動で展開されます）。安全のため一度に処理できる上限は最大 **100ファイル** です。
 
 ## クイックスタート (ビルド方法)
 
@@ -34,8 +37,8 @@ Windows PC で本プログラムをビルド・使用するには以下の手順
 
 ```powershell
 # プロジェクトの作成
-cargo new nkf-win --bin
-cd nkf-win
+cargo new MyNKF --bin
+cd MyNKF
 
 # src/main.rs を提供された Rust コードで置き換えます。
 
@@ -47,19 +50,19 @@ cargo build --release
 
 ```powershell
 # ヘルプ情報を表示する
-nkf-win --help
+MyNKF --help
 
 # バージョン情報を表示する
-nkf-win --version
+MyNKF --version
 
 # ファイルの文字コードを推測する
-nkf-win --guess input.txt
+MyNKF --guess input.txt
 
 # input.txt を Shift-JIS (CRLF) に変換してファイルへ書き出す
-nkf-win -s input.txt > output_sjis.txt
+MyNKF -s input.txt > output_sjis.txt
 
 # パイプライン連携 (標準入出力)
-type input_utf8.txt | nkf-win -e > output_euc.txt
+type input_utf8.txt | MyNKF -e > output_euc.txt
 ```
 
 ## ライセンス
