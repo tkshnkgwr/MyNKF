@@ -2,6 +2,17 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.5.1] - 2026-06-30
+
+### 修正
+- **Rust 1.96.0 および Edition 2024 に伴う Clippy 警告の解消**:
+  - GUI アプリ (`src/bin/mynkf-gui.rs`) において、`add_file_paths` およびファイル追加ボタンの処理における二重の `if`・`if let` ネストを、Edition 2024 で安定化された `&& let` 構文 (let_chains) に結合してコードを整理しました。
+  - GUI アプリの改行コード判定部分の冗長な `match` 式を `matches!` マクロに置き換えて簡潔な 1 行にリファクタリングしました。
+  - GUI アプリの Windows API 独自の命名規則に起因する `upper_case_acronyms` 警告を、`#[allow(clippy::upper_case_acronyms)]` アトリビュートを `win32` モジュールに付与することで抑制しました。
+  - ライブラリ (`src/lib.rs`) において、22 箇所の Clippy 警告（`manual_range_contains` による `(start..=end).contains(&x)` への推奨書き換え、`collapsible_if` の結合、`manual_flatten` の適用など）を全面的に修正・解消しました。
+
+---
+
 ## [1.5.0] - 2026-06-29
 
 ### 追加

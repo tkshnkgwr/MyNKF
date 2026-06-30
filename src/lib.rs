@@ -177,31 +177,27 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
     };
 
     let mut matched_any = false;
-    for entry in entries {
-        if let Ok(entry) = entry {
-            let file_type = match entry.file_type() {
-                Ok(t) => t,
-                Err(_) => continue,
-            };
-            if file_type.is_file() {
-                if let Some(name_str) = entry.file_name().to_str() {
-                    if wildcard_match(&file_pattern.to_lowercase(), &name_str.to_lowercase()) {
-                        let matched_path = if parent_dir.as_os_str().is_empty() {
-                            std::path::PathBuf::from(entry.file_name())
-                        } else {
-                            parent_dir.join(entry.file_name())
-                        };
-                        if let Some(path_str) = matched_path.to_str() {
-                            files.push(path_str.to_string());
-                            matched_any = true;
-                            if files.len() > MAX_GLOB_FILES {
-                                return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
-                            }
+    for entry in entries.flatten() {
+        let file_type = match entry.file_type() {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        if file_type.is_file()
+            && let Some(name_str) = entry.file_name().to_str()
+                && wildcard_match(&file_pattern.to_lowercase(), &name_str.to_lowercase()) {
+                    let matched_path = if parent_dir.as_os_str().is_empty() {
+                        std::path::PathBuf::from(entry.file_name())
+                    } else {
+                        parent_dir.join(entry.file_name())
+                    };
+                    if let Some(path_str) = matched_path.to_str() {
+                        files.push(path_str.to_string());
+                        matched_any = true;
+                        if files.len() > MAX_GLOB_FILES {
+                            return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
                         }
                     }
                 }
-            }
-        }
     }
 
     if !matched_any {
@@ -314,7 +310,7 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
         // Shift_JIS 判定
         if is_sjis {
             if sjis_needed > 0 {
-                if (b >= 0x40 && b <= 0x7E) || (b >= 0x80 && b <= 0xFC) {
+                if (0x40..=0x7E).contains(&b) || (0x80..=0xFC).contains(&b) {
                     sjis_needed = 0;
                     sjis_score += 2;
                 } else {
@@ -323,9 +319,9 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
             } else {
                 if b < 0x80 {
                     // ASCII
-                } else if (b >= 0x81 && b <= 0x9F) || (b >= 0xE0 && b <= 0xFC) {
+                } else if (0x81..=0x9F).contains(&b) || (0xE0..=0xFC).contains(&b) {
                     sjis_needed = 1;
-                } else if b >= 0xA1 && b <= 0xDF {
+                } else if (0xA1..=0xDF).contains(&b) {
                     sjis_score += 1;
                 } else {
                     is_sjis = false;
@@ -336,7 +332,7 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
         // EUC-JP 判定
         if is_euc {
             if euc_needed > 0 {
-                if b >= 0xA1 && b <= 0xFE {
+                if (0xA1..=0xFE).contains(&b) {
                     euc_needed -= 1;
                     if euc_needed == 0 { euc_score += 2; }
                 } else {
@@ -349,7 +345,7 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
                     euc_needed = 1;
                 } else if b == 0x8F {
                     euc_needed = 2;
-                } else if b >= 0xA1 && b <= 0xFE {
+                } else if (0xA1..=0xFE).contains(&b) {
                     euc_needed = 1;
                 } else {
                     is_euc = false;
@@ -384,16 +380,16 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
 pub fn sjis_to_eucjp(s1: u8, s2: u8) -> Option<(u8, u8)> {
     let s1_val = s1 as i32;
     let s2_val = s2 as i32;
-    let temp1 = if s1_val >= 0x81 && s1_val <= 0x9F {
+    let temp1 = if (0x81..=0x9F).contains(&s1_val) {
         s1_val - 0x81
-    } else if s1_val >= 0xE0 && s1_val <= 0xFC {
+    } else if (0xE0..=0xFC).contains(&s1_val) {
         s1_val - 0xE0 + 31
     } else {
         return None;
     };
-    let temp2 = if s2_val >= 0x40 && s2_val <= 0x7E {
+    let temp2 = if (0x40..=0x7E).contains(&s2_val) {
         s2_val - 0x40
-    } else if s2_val >= 0x80 && s2_val <= 0xFC {
+    } else if (0x80..=0xFC).contains(&s2_val) {
         s2_val - 0x80 + 63
     } else {
         return None;
@@ -402,7 +398,7 @@ pub fn sjis_to_eucjp(s1: u8, s2: u8) -> Option<(u8, u8)> {
     let ten = if temp2 < 94 { temp2 + 1 } else { temp2 - 94 + 1 };
     let e1 = ku + 0xA0;
     let e2 = ten + 0xA0;
-    if e1 >= 0xA1 && e1 <= 0xFE && e2 >= 0xA1 && e2 <= 0xFE {
+    if (0xA1..=0xFE).contains(&e1) && (0xA1..=0xFE).contains(&e2) {
         Some((e1 as u8, e2 as u8))
     } else {
         None
@@ -447,11 +443,11 @@ pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec
                 if b1 < 0x80 {
                     chars.push(b1 as char);
                     i += 1;
-                } else if b1 >= 0xA1 && b1 <= 0xDF {
+                } else if (0xA1..=0xDF).contains(&b1) {
                     let code = 0xFF61 + (b1 as u32 - 0xA1);
                     chars.push(std::char::from_u32(code).unwrap_or('?'));
                     i += 1;
-                } else if (b1 >= 0x81 && b1 <= 0x9F) || (b1 >= 0xE0 && b1 <= 0xFC) {
+                } else if (0x81..=0x9F).contains(&b1) || (0xE0..=0xFC).contains(&b1) {
                     if i + 1 < bytes.len() {
                         let b2 = bytes[i + 1];
                         if let Some((e1, e2)) = sjis_to_eucjp(b1, b2) {
@@ -486,7 +482,7 @@ pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec
                 } else if b1 == 0x8E {
                     if i + 1 < bytes.len() {
                         let b2 = bytes[i + 1];
-                        if b2 >= 0xA1 && b2 <= 0xDF {
+                        if (0xA1..=0xDF).contains(&b2) {
                             let code = 0xFF61 + (b2 as u32 - 0xA1);
                             chars.push(std::char::from_u32(code).unwrap_or('?'));
                         } else {
@@ -501,7 +497,7 @@ pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec
                     chars.push('?');
                     chars.push('?');
                     i += 3;
-                } else if b1 >= 0xA1 && b1 <= 0xFE {
+                } else if (0xA1..=0xFE).contains(&b1) {
                     if i + 1 < bytes.len() {
                         let b2 = bytes[i + 1];
                         let ku = b1 - 0xA0;
@@ -567,7 +563,7 @@ pub fn encode_from_unicode(
         let uni = c as u32;
         if uni < 0x80 {
             bytes.push(uni as u8);
-        } else if uni >= 0xFF61 && uni <= 0xFF9F {
+        } else if (0xFF61..=0xFF9F).contains(&uni) {
             let k_byte = (uni - 0xFF61 + 0xA1) as u8;
             if to_enc == Encoding::Sjis {
                 bytes.push(k_byte);

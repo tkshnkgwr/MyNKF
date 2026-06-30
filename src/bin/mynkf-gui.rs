@@ -15,6 +15,7 @@ use eframe::egui;
 
 // Windows用のネイティブ関数と二重起動防止処理の自前バインディング (低フットプリント)
 #[cfg(target_os = "windows")]
+#[allow(clippy::upper_case_acronyms)]
 mod win32 {
     use std::ffi::c_void;
     pub type HWND = *mut c_void;
@@ -193,31 +194,29 @@ impl MyNkfGuiApp {
 
     fn add_file_paths(&mut self, paths: &[PathBuf]) {
         for path in paths {
-            if path.is_file() {
-                if let Ok(mut file) = File::open(path) {
-                    let mut buffer = Vec::new();
-                    if file.read_to_end(&mut buffer).is_ok() {
-                        let guessed = guess_encoding(&buffer);
-                        let size = buffer.len();
-                        let ending = detect_line_ending(&buffer);
-                        
-                        let name = path.file_name()
-                            .and_then(|n| n.to_str())
-                            .unwrap_or("Unknown")
-                            .to_string();
+            if path.is_file() && let Ok(mut file) = File::open(path) {
+                let mut buffer = Vec::new();
+                if file.read_to_end(&mut buffer).is_ok() {
+                    let guessed = guess_encoding(&buffer);
+                    let size = buffer.len();
+                    let ending = detect_line_ending(&buffer);
+                    
+                    let name = path.file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("Unknown")
+                        .to_string();
 
-                        // 重複チェック
-                        if !self.files.iter().any(|f| f.path == *path) {
-                            self.files.push(FileItem {
-                                path: path.clone(),
-                                name,
-                                size,
-                                current_encoding: guessed,
-                                current_line_ending: ending,
-                                status: "待機中".to_string(),
-                                success: None,
-                            });
-                        }
+                    // 重複チェック
+                    if !self.files.iter().any(|f| f.path == *path) {
+                        self.files.push(FileItem {
+                            path: path.clone(),
+                            name,
+                            size,
+                            current_encoding: guessed,
+                            current_line_ending: ending,
+                            status: "待機中".to_string(),
+                            success: None,
+                        });
                     }
                 }
             }
@@ -332,13 +331,12 @@ impl eframe::App for MyNkfGuiApp {
                     
                     // 操作パネル (上部)
                     ui.horizontal(|ui| {
-                        if ui.button("➕ ファイルを追加").clicked() {
-                            if let Some(paths) = rfd::FileDialog::new()
+                        if ui.button("➕ ファイルを追加").clicked()
+                            && let Some(paths) = rfd::FileDialog::new()
                                 .set_title("変換するファイルを選択")
-                                .pick_files() 
-                            {
-                                self.add_file_paths(&paths);
-                            }
+                                .pick_files()
+                        {
+                            self.add_file_paths(&paths);
                         }
 
                         if ui.button("🗑️ リストをクリア").clicked() {
@@ -522,11 +520,7 @@ impl eframe::App for MyNkfGuiApp {
                                                 let actual_crlf = match self.target_line_ending {
                                                     LineEndingOption::Crlf => true,
                                                     LineEndingOption::Lf => false,
-                                                    LineEndingOption::AsIs => match item.current_line_ending {
-                                                        LineEnding::Crlf => true,
-                                                        LineEnding::Cr => true,
-                                                        _ => false,
-                                                    }
+                                                    LineEndingOption::AsIs => matches!(item.current_line_ending, LineEnding::Crlf | LineEnding::Cr),
                                                 };
 
                                                 let output = encode_from_unicode(
