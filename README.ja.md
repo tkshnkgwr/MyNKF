@@ -1,5 +1,8 @@
 # MyNKF (標準ライブラリ限定版)
 
+[![Rust CI](https://github.com/tkshnkgwr/MyNKF/actions/workflows/ci.yml/badge.svg)](https://github.com/tkshnkgwr/MyNKF/actions/workflows/ci.yml)
+[![Release](https://github.com/tkshnkgwr/MyNKF/actions/workflows/release.yml/badge.svg)](https://github.com/tkshnkgwr/MyNKF/actions/workflows/release.yml)
+
 👉 **[English Version is here](README.md)**
 
 低スペック・リソース制限のある Windows 環境での超高速・低負荷な動作を最優先に設計された、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の軽量互換ユーティリティ（CLI版 ＆ GUI版）です。

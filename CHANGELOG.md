@@ -10,6 +10,12 @@
   - GUI アプリの改行コード判定部分の冗長な `match` 式を `matches!` マクロに置き換えて簡潔な 1 行にリファクタリングしました。
   - GUI アプリの Windows API 独自の命名規則に起因する `upper_case_acronyms` 警告を、`#[allow(clippy::upper_case_acronyms)]` アトリビュートを `win32` モジュールに付与することで抑制しました。
   - ライブラリ (`src/lib.rs`) において、22 箇所の Clippy 警告（`manual_range_contains` による `(start..=end).contains(&x)` への推奨書き換え、`collapsible_if` の結合、`manual_flatten` の適用など）を全面的に修正・解消しました。
+- **ドキュメント改善とステータスバッジの追加**:
+  - `README.md` および `README.ja.md` のタイトル直下に、GitHub Actions の CI/Release ビルドステータスバッジを追加しました。
+  - `.agents/AGENTS.md` の CI/CD 維持ルールに、ステータスバッジの表示を維持する旨のガイドラインを追記しました。
+- **バージョン表示の同期化**:
+  - `Cargo.toml` のバージョン設定を `1.5.1` に更新しました。
+  - `src/main.rs` (CLI版) のヘルプ表示内で古いバージョン番号（`v1.4.0`）がハードコードされていた箇所を、`env!("CARGO_PKG_VERSION")` を使用して `Cargo.toml` と自動同期するように修正しました。
 
 ---
 

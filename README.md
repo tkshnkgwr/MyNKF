@@ -1,5 +1,8 @@
 # MyNKF (Standard Library Edition)
 
+[![Rust CI](https://github.com/tkshnkgwr/MyNKF/actions/workflows/ci.yml/badge.svg)](https://github.com/tkshnkgwr/MyNKF/actions/workflows/ci.yml)
+[![Release](https://github.com/tkshnkgwr/MyNKF/actions/workflows/release.yml/badge.svg)](https://github.com/tkshnkgwr/MyNKF/actions/workflows/release.yml)
+
 👉 **[日本語版のドキュメントはこちら (Japanese Version is here)](README.ja.md)**
 
 A lightweight, high-performance Japanese character encoding conversion utility (CLI & GUI editions) modeled after the classic `nkf` (Network Kanji Filter), optimized specifically for Windows PCs with limited resources.

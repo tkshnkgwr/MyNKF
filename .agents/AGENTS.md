@@ -66,4 +66,5 @@ AIがコードの変更、機能追加、リファクタリングなどを行う
 - **CI/CD・自動アップデート設定の維持**:
   - [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (ビルド高速化のための `rust-cache` 含む), [`.github/workflows/release.yml`](../.github/workflows/release.yml) および [`.github/dependabot.yml`](../.github/dependabot.yml) を破壊しないこと。
   - 依存アクションのバージョン（`checkout@v4`, `action-gh-release@v2` など）やビルド構成の変更時には、これらの構成ファイルも動作可能な状態に維持し、整合性を保つこと。
+  - `README.md` および `README.ja.md` のタイトル直下に、CI（Rust CI）および Release の GitHub Actions ステータスバッジを維持・表示すること。
 

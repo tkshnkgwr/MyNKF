@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use mynkf::*;
 
 fn print_usage() {
-    println!("MyNKF [Rust Standard Library Edition] v1.4.0");
+    println!("MyNKF [Rust Standard Library Edition] v{}", env!("CARGO_PKG_VERSION"));
     println!("Usage: MyNKF [options] [file...]");
     println!("Options:");
     println!("  -w               Convert output to UTF-8 (LF)");
