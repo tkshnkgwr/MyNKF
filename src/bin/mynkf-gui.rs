@@ -144,7 +144,7 @@ impl MyNkfGuiApp {
             if let Ok(data) = std::fs::read(path) {
                 fonts.font_data.insert(
                     "japanese_font".to_owned(),
-                    egui::FontData::from_owned(data),
+                    egui::FontData::from_owned(data).into(),
                 );
                 fonts.families.get_mut(&egui::FontFamily::Proportional).unwrap()
                     .insert(0, "japanese_font".to_owned());
@@ -166,7 +166,7 @@ impl MyNkfGuiApp {
         visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(45, 45, 53);
         visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(60, 60, 72);
         visuals.widgets.active.bg_fill = egui::Color32::from_rgb(80, 80, 96);
-        visuals.window_rounding = 8.0.into();
+        visuals.window_corner_radius = egui::CornerRadius::same(8);
         cc.egui_ctx.set_visuals(visuals);
 
         // テーブルの構築
@@ -225,7 +225,8 @@ impl MyNkfGuiApp {
 }
 
 impl eframe::App for MyNkfGuiApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx().clone();
         if self.first_frame {
             remove_shadow_and_borders();
             self.first_frame = false;
@@ -243,15 +244,15 @@ impl eframe::App for MyNkfGuiApp {
 
         // 影と枠の無いフラットでモダンなカスタムウィンドウの描画
         let window_frame = egui::containers::Frame {
-            inner_margin: egui::Margin::same(12.0),
-            rounding: egui::Rounding::same(10.0),
+            inner_margin: egui::Margin::same(12),
+            corner_radius: egui::CornerRadius::same(10),
             shadow: egui::epaint::Shadow::NONE,
             fill: egui::Color32::from_rgb(26, 26, 32),
             stroke: egui::Stroke::new(1.5, egui::Color32::from_rgb(70, 70, 85)),
             ..Default::default()
         };
 
-        egui::CentralPanel::default().frame(window_frame).show(ctx, |ui| {
+        egui::CentralPanel::default().frame(window_frame).show(ui, |ui| {
             // ==========================================
             // 1. 自作タイトルバー (ドラッグ可能領域)
             // ==========================================
@@ -269,7 +270,7 @@ impl eframe::App for MyNkfGuiApp {
             }
 
             // タイトルバー領域内にコンテンツを重ねて描画
-            ui.allocate_ui_at_rect(title_rect, |ui| {
+            ui.scope_builder(egui::UiBuilder::new().max_rect(title_rect), |ui| {
                 ui.horizontal(|ui| {
                     ui.style_mut().spacing.item_spacing.x = 8.0;
                     
@@ -355,11 +356,11 @@ impl eframe::App for MyNkfGuiApp {
                     
                     if self.files.is_empty() {
                         // ファイルが空の時のドラッグ＆ドロップガイド
-                        egui::Frame::none()
+                        egui::Frame::new()
                             .fill(egui::Color32::from_rgb(32, 32, 40))
                             .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 75)))
-                            .rounding(6.0)
-                            .inner_margin(egui::Margin::same(20.0))
+                            .corner_radius(egui::CornerRadius::same(6))
+                            .inner_margin(egui::Margin::same(20))
                             .show(ui, |ui| {
                                 ui.set_min_height(list_height);
                                 ui.vertical_centered(|ui| {
@@ -382,10 +383,10 @@ impl eframe::App for MyNkfGuiApp {
                     } else {
                         // テーブルによる一覧表示
                         egui::ScrollArea::vertical().max_height(list_height).show(ui, |ui| {
-                            egui::Frame::none()
+                            egui::Frame::new()
                                 .fill(egui::Color32::from_rgb(22, 22, 27))
-                                .rounding(6.0)
-                                .inner_margin(egui::Margin::same(4.0))
+                                .corner_radius(egui::CornerRadius::same(6))
+                                .inner_margin(egui::Margin::same(4))
                                 .show(ui, |ui| {
                                     ui.set_min_width(ui.available_width());
                                     
@@ -633,7 +634,7 @@ impl eframe::App for MyNkfGuiApp {
                                     _ => self.input_text.clone()
                                 };
 
-                                ctx.output_mut(|o| o.copied_text = raw_str);
+                                ctx.copy_text(raw_str);
                             }
                         });
                     });
@@ -660,6 +661,6 @@ fn main() {
     eframe::run_native(
         "MyNKF GUI",
         options,
-        Box::new(|cc| Box::new(MyNkfGuiApp::new(cc))),
+        Box::new(|cc| Ok(Box::new(MyNkfGuiApp::new(cc)))),
     ).unwrap();
 }

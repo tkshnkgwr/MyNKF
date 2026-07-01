@@ -2,6 +2,20 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.5.2] - 2026-07-01
+
+### 修正
+- **eframe / egui 0.35.0 へのアップグレードに伴う破壊的変更対応**:
+  - `eframe::App` のエントリーポイントを `App::update` から、新仕様の `App::ui` へ移行しました。
+  - `Rounding` が `CornerRadius` に変更されたことに伴い、`window_corner_radius` フィールドへの変更および `CornerRadius::same` の適用を行いました。
+  - `Margin::same` の引数が `f32` から `i8` に変更されたため、該当箇所を整数値指定に変更しました。
+  - `ui.allocate_ui_at_rect` を `ui.scope_builder` と `UiBuilder` に書き換えました。
+  - `Frame::none()` を `Frame::new()` に変更しました。
+  - クリップボードへのコピー処理を `ctx.copy_text` に置き換えました。
+  - `eframe::run_native` の戻り値の型変更に対応し、エラーハンドリングを適用しました。
+
+---
+
 ## [1.5.1] - 2026-06-30
 
 ### 修正
