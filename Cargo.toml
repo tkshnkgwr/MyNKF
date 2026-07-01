@@ -18,7 +18,7 @@ path = "src/bin/mynkf-gui.rs"
 [dependencies]
 eframe = "0.35"
 egui = "0.35"
-rfd = "0.14"
+rfd = "0.17"
 
 # Target-specific dependencies removed to use direct Win32 FFI for lower footprint
 
