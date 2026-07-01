@@ -16,7 +16,7 @@ name = "mynkf-gui"
 path = "src/bin/mynkf-gui.rs"
 
 [dependencies]
-eframe = "0.27"
+eframe = "0.35"
 egui = "0.27"
 rfd = "0.14"
 
