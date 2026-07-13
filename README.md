@@ -42,6 +42,19 @@ The GUI version (`mynkf-gui`) leverages `eframe`/`egui` to provide an ultra-ligh
 - **Pipes and Multi-file Processing**:
   - Seamlessly supports `stdin` and `stdout` piping as well as batch-processing multiple files specified via command-line arguments.
   - Supports wildcard file specifications (`*` and `?`) natively (glob expansion) even on Windows shells like PowerShell or cmd.exe. The maximum number of processed files is limited to **100** for safety.
+## Prerequisites
+
+This project depends on a shared library `common_lib` located in the parent directory (`../common_lib`). Before compiling or testing this project, make sure to clone `common_lib` into the same parent directory:
+
+```bash
+# Example directory structure:
+# workspace/
+# ├── MyNKF/      (this repository)
+# └── common_lib/  (dependency repository)
+
+# Run this in the parent directory of MyNKF
+git clone https://github.com/tkshnkgwr/common_lib.git
+```
 
 ## Quick Start (Rust)
 

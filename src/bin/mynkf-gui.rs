@@ -6,12 +6,12 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use eframe::egui;
+use mynkf::*;
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::fs::File;
 use std::io::{Read, Write};
-use mynkf::*;
-use eframe::egui;
+use std::path::PathBuf;
 
 // Windows用のネイティブ関数と二重起動防止処理の自前バインディング (低フットプリント)
 #[cfg(target_os = "windows")]
@@ -55,7 +55,9 @@ mod win32 {
 #[cfg(target_os = "windows")]
 fn prevent_double_start() {
     unsafe {
-        let name: Vec<u16> = "Global\\MyNKF_GUI_SingleInstance_Mutex\0".encode_utf16().collect();
+        let name: Vec<u16> = "Global\\MyNKF_GUI_SingleInstance_Mutex\0"
+            .encode_utf16()
+            .collect();
         let handle = win32::CreateMutexW(std::ptr::null(), 1, name.as_ptr());
         if handle.is_null() {
             std::process::exit(1);
@@ -117,12 +119,12 @@ struct MyNkfGuiApp {
     unicode_to_jis: HashMap<u16, u16>,
     first_frame: bool,
     current_tab: Tab,
-    
+
     // ファイル一括変換タブ
     files: Vec<FileItem>,
     target_encoding: Encoding,
     target_line_ending: LineEndingOption,
-    
+
     // テキスト変換タブ
     input_text: String,
     text_target_encoding: Encoding,
@@ -138,7 +140,7 @@ impl MyNkfGuiApp {
             "C:\\Windows\\Fonts\\msgothic.ttc",
             "C:\\Windows\\Fonts\\msmincho.ttc",
         ];
-        
+
         let mut loaded = false;
         for path in &font_paths {
             if let Ok(data) = std::fs::read(path) {
@@ -146,15 +148,21 @@ impl MyNkfGuiApp {
                     "japanese_font".to_owned(),
                     egui::FontData::from_owned(data).into(),
                 );
-                fonts.families.get_mut(&egui::FontFamily::Proportional).unwrap()
+                fonts
+                    .families
+                    .get_mut(&egui::FontFamily::Proportional)
+                    .unwrap()
                     .insert(0, "japanese_font".to_owned());
-                fonts.families.get_mut(&egui::FontFamily::Monospace).unwrap()
+                fonts
+                    .families
+                    .get_mut(&egui::FontFamily::Monospace)
+                    .unwrap()
                     .insert(0, "japanese_font".to_owned());
                 loaded = true;
                 break;
             }
         }
-        
+
         if loaded {
             cc.egui_ctx.set_fonts(fonts);
         }
@@ -162,7 +170,8 @@ impl MyNkfGuiApp {
         // ビジュアル（ダークテーマ）の設定
         let mut visuals = egui::Visuals::dark();
         visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(30, 30, 36);
-        visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(200, 200, 205));
+        visuals.widgets.noninteractive.fg_stroke =
+            egui::Stroke::new(1.0, egui::Color32::from_rgb(200, 200, 205));
         visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(45, 45, 53);
         visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(60, 60, 72);
         visuals.widgets.active.bg_fill = egui::Color32::from_rgb(80, 80, 96);
@@ -194,14 +203,17 @@ impl MyNkfGuiApp {
 
     fn add_file_paths(&mut self, paths: &[PathBuf]) {
         for path in paths {
-            if path.is_file() && let Ok(mut file) = File::open(path) {
+            if path.is_file()
+                && let Ok(mut file) = File::open(path)
+            {
                 let mut buffer = Vec::new();
                 if file.read_to_end(&mut buffer).is_ok() {
                     let guessed = guess_encoding(&buffer);
                     let size = buffer.len();
                     let ending = detect_line_ending(&buffer);
-                    
-                    let name = path.file_name()
+
+                    let name = path
+                        .file_name()
                         .and_then(|n| n.to_str())
                         .unwrap_or("Unknown")
                         .to_string();
@@ -235,7 +247,10 @@ impl eframe::App for MyNkfGuiApp {
         // ドラッグ＆ドロップファイルの監視
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
-                let paths: Vec<PathBuf> = i.raw.dropped_files.iter()
+                let paths: Vec<PathBuf> = i
+                    .raw
+                    .dropped_files
+                    .iter()
                     .filter_map(|f| f.path.clone())
                     .collect();
                 self.add_file_paths(&paths);
@@ -273,10 +288,10 @@ impl eframe::App for MyNkfGuiApp {
             ui.scope_builder(egui::UiBuilder::new().max_rect(title_rect), |ui| {
                 ui.horizontal(|ui| {
                     ui.style_mut().spacing.item_spacing.x = 8.0;
-                    
+
                     // アイコン風飾り
                     ui.colored_label(egui::Color32::from_rgb(0, 191, 255), "⚡");
-                    
+
                     // タイトルテキスト
                     ui.label(egui::RichText::new("MyNKF GUI 文字コードコンバータ")
                         .strong()
@@ -329,7 +344,7 @@ impl eframe::App for MyNkfGuiApp {
             match self.current_tab {
                 Tab::FileConversion => {
                     // -- ファイル一括変換タブ --
-                    
+
                     // 操作パネル (上部)
                     ui.horizontal(|ui| {
                         if ui.button("➕ ファイルを追加").clicked()
@@ -353,7 +368,7 @@ impl eframe::App for MyNkfGuiApp {
 
                     // ドラッグ＆ドロップエリア・リスト表示
                     let list_height = ui.available_height() - 110.0;
-                    
+
                     if self.files.is_empty() {
                         // ファイルが空の時のドラッグ＆ドロップガイド
                         egui::Frame::new()
@@ -389,7 +404,7 @@ impl eframe::App for MyNkfGuiApp {
                                 .inner_margin(egui::Margin::same(4))
                                 .show(ui, |ui| {
                                     ui.set_min_width(ui.available_width());
-                                    
+
                                     // ヘッダー行
                                     ui.horizontal(|ui| {
                                         ui.set_min_height(24.0);
@@ -412,7 +427,7 @@ impl eframe::App for MyNkfGuiApp {
                                         });
                                         ui.label(egui::RichText::new("状態").strong());
                                     });
-                                    
+
                                     ui.separator();
 
                                     // データ行
@@ -420,7 +435,7 @@ impl eframe::App for MyNkfGuiApp {
                                     for (idx, item) in self.files.iter().enumerate() {
                                         ui.horizontal(|ui| {
                                             ui.set_min_height(26.0);
-                                            
+
                                             // 削除ボタン
                                             if ui.add(egui::Button::new("❌").small().fill(egui::Color32::TRANSPARENT)).clicked() {
                                                 to_remove = Some(idx);
@@ -509,7 +524,7 @@ impl eframe::App for MyNkfGuiApp {
                                 for item in &mut self.files {
                                     item.status = "処理中...".to_string();
                                     item.success = None;
-                                    
+
                                     // 読み込み
                                     match File::open(&item.path) {
                                         Ok(mut file) => {
@@ -517,7 +532,7 @@ impl eframe::App for MyNkfGuiApp {
                                             if file.read_to_end(&mut buffer).is_ok() {
                                                 let guessed = guess_encoding(&buffer);
                                                 let unicode = decode_to_unicode(&buffer, guessed, &self.table);
-                                                
+
                                                 let actual_crlf = match self.target_line_ending {
                                                     LineEndingOption::Crlf => true,
                                                     LineEndingOption::Lf => false,
@@ -569,9 +584,9 @@ impl eframe::App for MyNkfGuiApp {
                 Tab::TextConversion => {
                     // -- テキスト直接変換タブ --
                     ui.label("テキストを入力または貼り付けしてください:");
-                    
+
                     let text_box_height = ui.available_height() - 110.0;
-                    
+
                     // 入力テキストエリア
                     egui::ScrollArea::vertical().max_height(text_box_height).show(ui, |ui| {
                         ui.add(egui::TextEdit::multiline(&mut self.input_text)
@@ -662,5 +677,6 @@ fn main() {
         "MyNKF GUI",
         options,
         Box::new(|cc| Ok(Box::new(MyNkfGuiApp::new(cc)))),
-    ).unwrap();
+    )
+    .unwrap();
 }

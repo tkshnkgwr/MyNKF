@@ -6,6 +6,7 @@ version = 4
 name = "MyNKF"
 version = "1.5.2"
 dependencies = [
+ "common_lib",
  "eframe",
  "egui",
  "rfd",
@@ -643,6 +644,14 @@ checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
 dependencies = [
  "bytes",
  "memchr",
+]
+
+[[package]]
+name = "common_lib"
+version = "0.2.1"
+dependencies = [
+ "serde",
+ "windows",
 ]
 
 [[package]]

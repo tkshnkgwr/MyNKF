@@ -34,6 +34,7 @@ Windows上での多重起動を防ぐため、`windows` クレート等の Named
 
 ## 6. ドキュメント自動更新ルール（AI向け）
 AIがコードの変更、機能追加、リファクタリングなどを行う際は、必ず以下のドキュメントをセットで更新または作成すること。
+**【例外】ただし、Markdownファイルのみの修正（ドキュメントの誤字脱字修正や構成変更等）を行う場合は、本自動更新ルール（CHANGELOG.mdの自動更新等）は適用外とし、他のファイルを修正・更新する必要はない。**
 
 - **`CHANGELOG.md` の自動更新**:
   ソースコードに変更を加えた場合は、作業完了前に必ず変更内容や目的を `CHANGELOG.md` の最新セクションに自動追記すること。
@@ -65,6 +66,7 @@ AIがコードの変更、機能追加、リファクタリングなどを行う
   - [`.editorconfig`](../.editorconfig) および [`.vscode/settings.json`](../.vscode/settings.json) で規定されたコーディングスタイル（インデント幅、改行コード LF、UTF-8 など）を遵守し、プロジェクト全体の書式の一貫性を維持すること。
 - **CI/CD・自動アップデート設定の維持**:
   - [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (ビルド高速化のための `rust-cache` 含む), [`.github/workflows/release.yml`](../.github/workflows/release.yml) および [`.github/dependabot.yml`](../.github/dependabot.yml) を破壊しないこと。
+  - **なお、無駄なビルド実行を避けるため、Markdownファイル（`**.md`）のみの変更時はGitHub ActionsのCIビルド（テスト・ビルド）を実行しない（スキップする）ように `paths-ignore` が設定されている。**
   - 依存アクションのバージョン（`checkout@v4`, `action-gh-release@v2` など）やビルド構成の変更時には、これらの構成ファイルも動作可能な状態に維持し、整合性を保つこと。
   - `README.md` および `README.ja.md` のタイトル直下に、CI（Rust CI）および Release の GitHub Actions ステータスバッジを維持・表示すること。
 

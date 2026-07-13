@@ -6,15 +6,18 @@
 
 #![allow(dead_code, unused_variables, unused_mut)]
 
-use std::env;
-use std::io::{self, Read, Write};
-use std::fs::File;
 use std::collections::HashMap;
+use std::env;
+use std::fs::File;
+use std::io::{self, Read, Write};
 
 use mynkf::*;
 
 fn print_usage() {
-    println!("MyNKF [Rust Standard Library Edition] v{}", env!("CARGO_PKG_VERSION"));
+    println!(
+        "MyNKF [Rust Standard Library Edition] v{}",
+        env!("CARGO_PKG_VERSION")
+    );
     println!("Usage: MyNKF [options] [file...]");
     println!("Options:");
     println!("  -w               Convert output to UTF-8 (LF)");
@@ -32,7 +35,7 @@ fn print_usage() {
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
-    
+
     let mut to_enc = Encoding::Utf8; // デフォルトUTF-8
     let mut has_enc_option = false;
     let mut is_guess = false;
@@ -105,7 +108,7 @@ fn main() -> io::Result<()> {
         // 標準入力からの読込
         let mut buffer = Vec::new();
         io::stdin().read_to_end(&mut buffer)?;
-        
+
         if is_guess {
             let guessed = guess_encoding(&buffer);
             let size = buffer.len();
@@ -208,7 +211,8 @@ fn main() -> io::Result<()> {
                 } else {
                     target_enc == Encoding::Sjis
                 };
-                let output = encode_from_unicode(&unicode, target_enc, &unicode_to_jis, actual_crlf);
+                let output =
+                    encode_from_unicode(&unicode, target_enc, &unicode_to_jis, actual_crlf);
                 io::stdout().write_all(&output)?;
             }
         }

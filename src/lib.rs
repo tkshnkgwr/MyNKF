@@ -121,7 +121,9 @@ pub fn wildcard_match(pattern: &str, text: &str) -> bool {
     let mut t_star = None;
 
     while t_idx < text_chars.len() {
-        if p_idx < pattern_chars.len() && (pattern_chars[p_idx] == '?' || pattern_chars[p_idx] == text_chars[t_idx]) {
+        if p_idx < pattern_chars.len()
+            && (pattern_chars[p_idx] == '?' || pattern_chars[p_idx] == text_chars[t_idx])
+        {
             p_idx += 1;
             t_idx += 1;
         } else if p_idx < pattern_chars.len() && pattern_chars[p_idx] == '*' {
@@ -148,7 +150,10 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
     if !arg.contains('*') && !arg.contains('?') {
         files.push(arg.to_string());
         if files.len() > MAX_GLOB_FILES {
-            return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
+            return Err(format!(
+                "Maximum limit of {} files exceeded.",
+                MAX_GLOB_FILES
+            ));
         }
         return Ok(());
     }
@@ -172,7 +177,10 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
     let entries = match std::fs::read_dir(dir_to_read) {
         Ok(e) => e,
         Err(err) => {
-            return Err(format!("Failed to read directory '{:?}': {}", dir_to_read, err));
+            return Err(format!(
+                "Failed to read directory '{:?}': {}",
+                dir_to_read, err
+            ));
         }
     };
 
@@ -184,20 +192,24 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
         };
         if file_type.is_file()
             && let Some(name_str) = entry.file_name().to_str()
-                && wildcard_match(&file_pattern.to_lowercase(), &name_str.to_lowercase()) {
-                    let matched_path = if parent_dir.as_os_str().is_empty() {
-                        std::path::PathBuf::from(entry.file_name())
-                    } else {
-                        parent_dir.join(entry.file_name())
-                    };
-                    if let Some(path_str) = matched_path.to_str() {
-                        files.push(path_str.to_string());
-                        matched_any = true;
-                        if files.len() > MAX_GLOB_FILES {
-                            return Err(format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
-                        }
-                    }
+            && wildcard_match(&file_pattern.to_lowercase(), &name_str.to_lowercase())
+        {
+            let matched_path = if parent_dir.as_os_str().is_empty() {
+                std::path::PathBuf::from(entry.file_name())
+            } else {
+                parent_dir.join(entry.file_name())
+            };
+            if let Some(path_str) = matched_path.to_str() {
+                files.push(path_str.to_string());
+                matched_any = true;
+                if files.len() > MAX_GLOB_FILES {
+                    return Err(format!(
+                        "Maximum limit of {} files exceeded.",
+                        MAX_GLOB_FILES
+                    ));
                 }
+            }
+        }
     }
 
     if !matched_any {
@@ -288,7 +300,9 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
             if utf8_needed > 0 {
                 if (b & 0xC0) == 0x80 {
                     utf8_needed -= 1;
-                    if utf8_needed == 0 { utf8_score += 2; }
+                    if utf8_needed == 0 {
+                        utf8_score += 2;
+                    }
                 } else {
                     is_utf8 = false;
                 }
@@ -334,7 +348,9 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
             if euc_needed > 0 {
                 if (0xA1..=0xFE).contains(&b) {
                     euc_needed -= 1;
-                    if euc_needed == 0 { euc_score += 2; }
+                    if euc_needed == 0 {
+                        euc_score += 2;
+                    }
                 } else {
                     is_euc = false;
                 }
@@ -354,25 +370,49 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
         }
     }
 
-    if utf8_needed > 0 { is_utf8 = false; }
-    if sjis_needed > 0 { is_sjis = false; }
-    if euc_needed > 0 { is_euc = false; }
+    if utf8_needed > 0 {
+        is_utf8 = false;
+    }
+    if sjis_needed > 0 {
+        is_sjis = false;
+    }
+    if euc_needed > 0 {
+        is_euc = false;
+    }
 
-    if is_utf8 && !is_sjis && !is_euc { return Encoding::Utf8; }
-    if !is_utf8 && is_sjis && !is_euc { return Encoding::Sjis; }
-    if !is_utf8 && !is_sjis && is_euc { return Encoding::EucJp; }
+    if is_utf8 && !is_sjis && !is_euc {
+        return Encoding::Utf8;
+    }
+    if !is_utf8 && is_sjis && !is_euc {
+        return Encoding::Sjis;
+    }
+    if !is_utf8 && !is_sjis && is_euc {
+        return Encoding::EucJp;
+    }
 
     let max_score = utf8_score.max(sjis_score).max(euc_score);
     if max_score == 0 {
-        if is_utf8 { return Encoding::Utf8; }
-        if is_sjis { return Encoding::Sjis; }
-        if is_euc { return Encoding::EucJp; }
+        if is_utf8 {
+            return Encoding::Utf8;
+        }
+        if is_sjis {
+            return Encoding::Sjis;
+        }
+        if is_euc {
+            return Encoding::EucJp;
+        }
         return Encoding::Unknown;
     }
 
-    if is_utf8 && utf8_score == max_score { return Encoding::Utf8; }
-    if is_sjis && sjis_score == max_score { return Encoding::Sjis; }
-    if is_euc && euc_score == max_score { return Encoding::EucJp; }
+    if is_utf8 && utf8_score == max_score {
+        return Encoding::Utf8;
+    }
+    if is_sjis && sjis_score == max_score {
+        return Encoding::Sjis;
+    }
+    if is_euc && euc_score == max_score {
+        return Encoding::EucJp;
+    }
 
     Encoding::Unknown
 }
@@ -395,7 +435,11 @@ pub fn sjis_to_eucjp(s1: u8, s2: u8) -> Option<(u8, u8)> {
         return None;
     };
     let ku = temp1 * 2 + if temp2 < 94 { 1 } else { 2 };
-    let ten = if temp2 < 94 { temp2 + 1 } else { temp2 - 94 + 1 };
+    let ten = if temp2 < 94 {
+        temp2 + 1
+    } else {
+        temp2 - 94 + 1
+    };
     let e1 = ku + 0xA0;
     let e2 = ten + 0xA0;
     if (0xA1..=0xFE).contains(&e1) && (0xA1..=0xFE).contains(&e2) {
@@ -414,7 +458,7 @@ pub fn eucjp_to_sjis(e1: u8, e2: u8) -> (u8, u8) {
         ku / 2 + 0x80
     };
     let s1 = if s1 >= 0xA0 { s1 + 0x40 } else { s1 };
-    
+
     let s2 = if ku % 2 == 1 {
         if ten >= 64 { ten + 0x40 } else { ten + 0x3F }
     } else {
@@ -530,7 +574,7 @@ pub fn encode_from_unicode(
     actual_crlf: bool,
 ) -> Vec<u8> {
     let mut bytes = Vec::new();
-    
+
     let mut normalized_chars = Vec::new();
     let mut skip_next = false;
     for i in 0..chars.len() {
@@ -681,7 +725,8 @@ mod tests {
                 unicode_to_jis.insert(uni, idx as u16);
             }
         }
-        let encoded_utf8 = encode_from_unicode(&decoded_chars, Encoding::Utf8, &unicode_to_jis, false);
+        let encoded_utf8 =
+            encode_from_unicode(&decoded_chars, Encoding::Utf8, &unicode_to_jis, false);
         let output_str = String::from_utf8(encoded_utf8).unwrap();
         assert_eq!(output_str, "あ\nい");
     }
@@ -712,11 +757,13 @@ mod tests {
         }
 
         let input_chars: Vec<char> = "ｱ".chars().collect();
-        
-        let encoded_sjis = encode_from_unicode(&input_chars, Encoding::Sjis, &unicode_to_jis, false);
+
+        let encoded_sjis =
+            encode_from_unicode(&input_chars, Encoding::Sjis, &unicode_to_jis, false);
         assert_eq!(encoded_sjis, vec![0xB1]);
 
-        let encoded_euc = encode_from_unicode(&input_chars, Encoding::EucJp, &unicode_to_jis, false);
+        let encoded_euc =
+            encode_from_unicode(&input_chars, Encoding::EucJp, &unicode_to_jis, false);
         assert_eq!(encoded_euc, vec![0x8E, 0xB1]);
     }
 
@@ -725,7 +772,10 @@ mod tests {
         assert_eq!(detect_line_ending(b"hello\nworld"), LineEnding::Lf);
         assert_eq!(detect_line_ending(b"hello\r\nworld"), LineEnding::Crlf);
         assert_eq!(detect_line_ending(b"hello\rworld"), LineEnding::Cr);
-        assert_eq!(detect_line_ending(b"hello\nworld\r\ntest"), LineEnding::Mixed);
+        assert_eq!(
+            detect_line_ending(b"hello\nworld\r\ntest"),
+            LineEnding::Mixed
+        );
         assert_eq!(detect_line_ending(b"helloworld"), LineEnding::None);
     }
 
@@ -779,7 +829,10 @@ mod tests {
         let mut files = Vec::new();
         let res = expand_wildcard("temp_test_limit_*.txt", &mut files);
         assert!(res.is_err());
-        assert_eq!(res.unwrap_err(), format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES));
+        assert_eq!(
+            res.unwrap_err(),
+            format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES)
+        );
 
         for path in created_paths {
             std::fs::remove_file(path).ok();
@@ -793,6 +846,9 @@ mod tests {
         assert_eq!(format_size(1024), "1.0 KB");
         assert_eq!(format_size(2048 + 512), "2.5 KB");
         assert_eq!(format_size(1024 * 1024), "1.0 MB");
-        assert_eq!(format_size(1024 * 1024 * 1024 * 3 + 1024 * 1024 * 1024 / 2), "3.5 GB");
+        assert_eq!(
+            format_size(1024 * 1024 * 1024 * 3 + 1024 * 1024 * 1024 / 2),
+            "3.5 GB"
+        );
     }
 }

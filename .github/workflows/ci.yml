@@ -3,8 +3,12 @@ name: Rust CI
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,15 +18,34 @@ jobs:
     name: Run cargo test and cargo build (Windows)
     runs-on: windows-latest
 
+    defaults:
+      run:
+        working-directory: MyNKF
+
     steps:
+    # MyNKFは親ディレクトリの ../common_lib に相対パスで依存しているため、
+    # ワークスペース内に MyNKF と common_lib を並行してチェックアウトします。
     - name: Checkout repository
-      uses: actions/checkout@v7
+      uses: actions/checkout@v4
+      with:
+        path: MyNKF
+
+    # 依存ライブラリである common_lib をクローンします。
+    # secrets.PAT が設定されていない場合は、デフォルトの github.token にフォールバックします。
+    - name: Checkout common_lib
+      uses: actions/checkout@v4
+      with:
+        repository: tkshnkgwr/common_lib
+        path: common_lib
+        token: ${{ secrets.PAT || github.token }}
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       
     - name: Rust cache
       uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: MyNKF
       
     - name: Run cargo test
       run: cargo test --verbose

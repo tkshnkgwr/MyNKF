@@ -2,9 +2,26 @@
 
 すべての変更履歴をここに記録します。
 
-## [1.5.2] - 2026-07-01
+## [1.5.3] - 2026-07-13
 
 ### 修正
+- **GitHub Actions ワークフロー (CI) の修正**:
+  - `ci.yml` の `push` および `pull_request` フックに `paths-ignore` を追加し、Markdownファイル（`**.md`）のみの変更時にはCIビルド（テスト・ビルド）を実行しないように設定。
+- **開発ガイドライン (AGENTS.md) の更新**:
+  - Markdownファイルのみの修正時には、ドキュメントの自動更新ルール（CHANGELOG.md等の追記・更新）の適用を免除する旨を追記。
+  - CIビルドがMarkdownのみの修正時にスキップされる設定についての記述を追記。
+
+---
+
+## [1.5.2] - 2026-07-08
+
+### 修正
+- **GitHub Actions ワークフロー (CI/CD) の修正およびビルド前提条件の整備**:
+  - `actions/checkout` を非推奨の `@v7` から安定版 `@v4` に、`softprops/action-gh-release` を `@v3` から安定版 `@v2` に戻しました。
+  - 親ディレクトリにある共有ライブラリ `common_lib` への相対パス依存（`../common_lib`）を解決するため、ビルド前に `common_lib` リポジトリを並階層にクローンするステップを追加しました。また、トークン不在時にエラーで止まらないよう `secrets.PAT` フォールバック（`${{ secrets.PAT || github.token }}`）を設定しました。
+  - 各ジョブに `defaults.run.working-directory: MyNKF` を設定し、リポジトリチェックアウト時のサブディレクトリ構成に対応しました。
+  - `release.yml` 内のリリースアセット指定パスを、実際の出力先（`MyNKF/target/release/MyNKF-windows-x64.zip`）に修正し、ビルドエラーを招いていた `mynkf.exe` の大文字小文字の不整合（`MyNKF.exe`）を修正しました。
+  - ローカルでビルドやテストを実行する際に、事前に親ディレクトリに `common_lib` をクローンしておく必要がある前提条件を `README.md` および `README.ja.md` に追記しました。
 - **eframe / egui 0.35.0 へのアップグレードに伴う破壊的変更対応**:
   - `eframe::App` のエントリーポイントを `App::update` から、新仕様の `App::ui` へ移行しました。
   - `Rounding` が `CornerRadius` に変更されたことに伴い、`window_corner_radius` フィールドへの変更および `CornerRadius::same` の適用を行いました。
