@@ -1,20 +1,26 @@
-// =========================================================================
-// MyNKF Library Module
-// Contains core encoding detection and conversion logic
-// =========================================================================
+//! MyNKFライブラリモジュール
+//!
+//! 文字コード自動検出および文字コード・改行コード変換のコアロジックを提供します。
 
 use std::collections::HashMap;
 
+/// サポートされている文字コードを表す列挙型。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Encoding {
+    /// ASCIIコード
     Ascii,
+    /// UTF-8コード
     Utf8,
+    /// Shift_JISコード
     Sjis,
+    /// EUC-JPコード
     EucJp,
+    /// 判定不可（バイナリなど）
     Unknown,
 }
 
 impl Encoding {
+    /// 文字コードに対応する文字列表記を返します。
     pub fn as_str(&self) -> &'static str {
         match self {
             Encoding::Ascii => "ASCII",
@@ -26,16 +32,23 @@ impl Encoding {
     }
 }
 
+/// 改行コードの種類を表す列挙型。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineEnding {
+    /// LF (Linux/macOS)
     Lf,
+    /// CRLF (Windows)
     Crlf,
+    /// CR (古いMac)
     Cr,
+    /// 複数の改行コードが混在
     Mixed,
+    /// 改行なし
     None,
 }
 
 impl LineEnding {
+    /// 改行コードに対応する文字列表記を返します。
     pub fn as_str(&self) -> &'static str {
         match self {
             LineEnding::Lf => "LF",
@@ -47,6 +60,15 @@ impl LineEnding {
     }
 }
 
+/// 与えられたバイト列から改行コードの種類を検出します。
+///
+/// # 引数
+///
+/// * `bytes` - 判定対象のバイト列
+///
+/// # 戻り値
+///
+/// 検出された `LineEnding` を返します。
 pub fn detect_line_ending(bytes: &[u8]) -> LineEnding {
     let mut has_lf = false;
     let mut has_crlf = false;
@@ -79,6 +101,17 @@ pub fn detect_line_ending(bytes: &[u8]) -> LineEnding {
     }
 }
 
+/// 与えられたバイト列の行数をカウントします。
+///
+/// 各種改行コード（LF, CRLF, CR）を考慮してカウントします。空のバイト列の場合は 0 を返します。
+///
+/// # 引数
+///
+/// * `bytes` - カウント対象のバイト列
+///
+/// # 戻り値
+///
+/// 行数を返します。
 pub fn count_lines(bytes: &[u8]) -> usize {
     if bytes.is_empty() {
         return 0;
@@ -110,8 +143,19 @@ pub fn count_lines(bytes: &[u8]) -> usize {
     count
 }
 
+/// ワイルドカード展開時に一度に処理できる最大ファイル数。
 pub const MAX_GLOB_FILES: usize = 100;
 
+/// ワイルドカードパターン（`*` や `?`）が指定されたテキストにマッチするか判定します。
+///
+/// # 引数
+///
+/// * `pattern` - ワイルドカードパターン（例: `*.txt`, `a?c.txt`）
+/// * `text` - マッチング対象のテキスト
+///
+/// # 戻り値
+///
+/// マッチした場合は `true`、そうでない場合は `false` を返します。
 pub fn wildcard_match(pattern: &str, text: &str) -> bool {
     let pattern_chars: Vec<char> = pattern.chars().collect();
     let text_chars: Vec<char> = text.chars().collect();
@@ -146,6 +190,19 @@ pub fn wildcard_match(pattern: &str, text: &str) -> bool {
     p_idx == pattern_chars.len()
 }
 
+/// 指定された引数（ワイルドカードを含む場合があるパス）を展開し、ファイルリストに追加します。
+///
+/// パターンマッチによりファイル名部分が一致するローカルファイルを探して `files` に格納します。
+/// 最大ファイル数 `MAX_GLOB_FILES` を超えた場合はエラーを返します。
+///
+/// # 引数
+///
+/// * `arg` - 展開対象のパスパターン
+/// * `files` - 展開されたファイル名が追加されるベクター
+///
+/// # 戻り値
+///
+/// 成功した場合は `Ok(())`、ファイル数上限超過やディレクトリの読み込みに失敗した場合は `Err` を返します。
 pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String> {
     if !arg.contains('*') && !arg.contains('?') {
         files.push(arg.to_string());
@@ -219,6 +276,15 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
     Ok(())
 }
 
+/// 指定されたバイト数を読みやすい形式（KB, MB, GB）に整形します。
+///
+/// # 引数
+///
+/// * `bytes` - 整形対象のバイト数
+///
+/// # 戻り値
+///
+/// 整形されたサイズの文字列を返します。
 pub fn format_size(bytes: usize) -> String {
     let kb = 1024.0;
     let mb = kb * 1024.0;
@@ -238,7 +304,15 @@ pub fn format_size(bytes: usize) -> String {
 
 pub const JIS_TO_UNICODE_BASE64: &str = "MAAwATAC/wz/DjD7/xr/G/8f/wEwmzCcALT/QACo/z7/4/8/MP0w/jCdMJ4wA07dMAUwBjAHMPwgFSAQ/w//PP9eIiX/XCAmICUgGCAZIBwgHf8I/wkwFDAV/zv/Pf9b/10wCDAJMAowCzAMMA0wDjAPMBAwEf8L/w0AsQDXAPf/HSJg/xz/HiJmImciHiI0JkImQACwIDIgMyED/+X/BP/g/+H/Bf8D/wb/Cv8gAKcmBiYFJcslzyXOJcclxiWhJaAlsyWyJb0lvCA7MBIhkiGQIZEhkzATAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIIIgsihiKHIoIigyIqIikAAAAAAAAAAAAAAAAAAAAAIiciKP/iIdIh1CIAIgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiAipSMSIgIiByJhIlIiaiJrIhoiPSIdIjUiKyIsAAAAAAAAAAAAAAAAAAAhKyAwJm8mbSZqICAgIQC2AAAAAAAAAAAl7wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8Q/xH/Ev8T/xT/Ff8W/xf/GP8ZAAAAAAAAAAAAAAAAAAD/If8i/yP/JP8l/yb/J/8o/yn/Kv8r/yz/Lf8u/y//MP8x/zL/M/80/zX/Nv83/zj/Of86AAAAAAAAAAAAAAAA/0H/Qv9D/0T/Rf9G/0f/SP9J/0r/S/9M/03/Tv9P/1D/Uf9S/1P/VP9V/1b/V/9Y/1n/WgAAAAAAAAAAMEEwQjBDMEQwRTBGMEcwSDBJMEowSzBMME0wTjBPMFAwUTBSMFMwVDBVMFYwVzBYMFkwWjBbMFwwXTBeMF8wYDBhMGIwYzBkMGUwZjBnMGgwaTBqMGswbDBtMG4wbzBwMHEwcjBzMHQwdTB2MHcweDB5MHowezB8MH0wfjB/MIAwgTCCMIMwhDCFMIYwhzCIMIkwijCLMIwwjTCOMI8wkDCRMJIwkwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwoTCiMKMwpDClMKYwpzCoMKkwqjCrMKwwrTCuMK8wsDCxMLIwszC0MLUwtjC3MLgwuTC6MLswvDC9ML4wvzDAMMEwwjDDMMQwxTDGMMcwyDDJMMowyzDMMM0wzjDPMNAw0TDSMNMw1DDVMNYw1zDYMNkw2jDbMNww3TDeMN8w4DDhMOIw4zDkMOUw5jDnMOgw6TDqMOsw7DDtMO4w7zDwMPEw8jDzMPQw9TD2AAAAAAAAAAAAAAAAAAAAAAORA5IDkwOUA5UDlgOXA5gDmQOaA5sDnAOdA54DnwOgA6EDowOkA6UDpgOnA6gDqQAAAAAAAAAAAAAAAAAAAAADsQOyA7MDtAO1A7YDtwO4A7kDugO7A7wDvQO+A78DwAPBA8MDxAPFA8YDxwPIA8kAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBAEEQQSBBMEFAQVBAEEFgQXBBgEGQQaBBsEHAQdBB4EHwQgBCEEIgQjBCQEJQQmBCcEKAQpBCoEKwQsBC0ELgQvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDAEMQQyBDMENAQ1BFEENgQ3BDgEOQQ6BDsEPAQ9BD4EPwRABEEEQgRDBEQERQRGBEcESARJBEoESwRMBE0ETgRPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlACUCJQwlECUYJRQlHCUsJSQlNCU8JQElAyUPJRMlGyUXJSMlMyUrJTslSyUgJS8lKCU3JT8lHSUwJSUlOCVCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJGAkYSRiJGMkZCRlJGYkZyRoJGkkaiRrJGwkbSRuJG8kcCRxJHIkcyFgIWEhYiFjIWQhZSFmIWchaCFpAAAzSTMUMyIzTTMYMyczAzM2M1EzVzMNMyYzIzMrM0ozOzOcM50znjOOM48zxDOhAAAAAAAAAAAAAAAAAAAAADN7MB0wHyEWM80hITKkMqUypjKnMqgyMTIyMjkzfjN9M3wiUiJhIisiLiIRIhoipSIgIh8ivyI1IikiKgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATpxVFloDlj9UwGEbYyhZ9pAihHWDHHpQYKpj4W4lZe2EZoKmm/Vok1cnZaFicVubWdCGe5j0fWJ9vpuOYhZ8n4i3W4letWMJZpdoSJXHl41nT07lTwpPTU+dUElW8lk3WdRaAVwJYN9hD2FwZhNpBXC6dU91cHn7fa1974DDhA6IY4sCkFWQelM7TpVOpVffgLKQwXjvTgBY8W6ikDh6MoMogoucL1FBU3BUvVThVuBZ+18VmPJt64DkhS2WYpZwlqCX+1QLU/Nbh3DPf72PwpboU2+dXHq6ThF4k4H8biZWGFUEax2FGpw7WeVTqW1mdNyVj1ZCTpGQS5byg0+ZDFPhVbZbMF9xZiBm82gEbDhs820pdFt2yHpOmDSC8YhbimCS7W2ydat2ypnFYKaLAY2KlbJpjlOtUYZXElgwWURbtF72YChjqWP0bL9vFHCOcRRxWXHVcz9+AYJ2gtGFl5BgkludG1hpZbxsWnUlUflZLlllX4Bf3GK8ZfpqKmsna7Rzi3/BiVadLJ0OnsRcoWyWg3tRBFxLYbaBxmh2cmFOWU/6U3hgaW4pek+X804LUxZO7k9VTz1PoU9zUqBT71YJWQ9awVu2W+F50WaHZ5xntmtMbLNwa3PCeY15vno8e4eCsYLbgwSDd4Pvg9OHZoqyVimMqI/mkE6XHoaKT8Rc6GIRcll1O4Hlgr2G/ozAlsWZE5nVTstPGonjVt5YSljKXvtf62AqYJRgYmHQYhJi0GU5m0FmZmiwbXdwcHVMdoZ9dYKlh/mVi5aOjJ1R8VK+WRZUs1uzXRZhaGmCba94jYTLiFeKcpOnmrhtbJmohtlXo2f/hs6SDlKDVodUBF7TYuFkuWg8aDhru3NyeLp6a4maidKNa48DkO2Vo5aUl2lbZlyzaX2YTZhOY5t7IGoration9otpwNb19SclWdYHBi7G07bgdu0YRbiRCPRE4UnDlT9mkbajqXhGgqUVx6w4SykdyTjFZbnShoIoMFhDF8pVIIgsV05k5+T4NRoFvSUgpS2FLnXftVmlgqWeZbjFuYW9tecl55YKNhH2FjYb5j22ViZ9FoU2j6az5rU2xXbyJvl29FdLB1GHbjdwt6/3uhfCF96X82f/CAnYJmg56Js4rMjKuQhJRRlZOVkZWilmWX05koghhOOFQrXLhdzHOpdkx3PFypf+uNC5bBmBGYVJhYTwFPDlNxVZxWaFf6WUdbCVvEXJBeDF5+X8xj7mc6Zddl4mcfaMtoxGpfXjBrxWwXbH11f3lIW2N6AH0AX72Jj4oYjLSNd47Mjx2Y4poOmzxOgFB9UQBZk1ucYi9igGTsazpyoHWReUd/qYf7iryLcGOsg8qXoFQJVANVq2hUaliKcHgnZ3WezVN0W6KBGoZQkAZOGE5FTsdPEVPKVDhbrl8TYCVlUWc9bEJscmzjcHh0A3p2eq57CH0afP59ZmXncltTu1xFXehi0mLgYxluIIZaijGN3ZL4bwF5pptaTqhOq06sT5tPoFDRUUd69lFxUfZTVFMhU39T61WsWINc4V83X0pgL2BQYG1jH2VZaktswXLCcu1374D4gQWCCIVOkPeT4Zf/mVeaWk7wUd1cLWaBaW1cQGbyaXVziWhQfIFQxVLkV0dd/MmZaRrI2s9dDR5gXm9e0t9yoK5g8yIf4lfizmP0ZHRVB+SgE5dUDZT5VM6ctdzlnfpguaOr5nGmciZ0lF3YRqGXlWwenpQdlvTkEeWhU4yatuR51xRXEhjmHqfbJOXdI9heqpxipaIfIJoF35waFGTbFLyVBuFq4oTf6SOzZDhU2aIiHlBT8JQvlIRUURVU1ctc+pXi1lRX2JfhGB1YXZhZ2GpY7JkOmVsZm9oQm4TdWZ6PXz7fUx9mX5Lf2uDDoNKhs2KCIpji2aO/ZganY+CuI/Om+hSh2IfZINvwJaZaEFQkWsgbHpvVHp0fVCIQIojZwhO9lA5UCZQZVF8UjhSY1WnVw9YBVrMXvphsmH4YvNjcmkcailyfXKscy54FHhvfXl3DICpiYuLGYzijtKQY5N1lnqYVZoTnnhRQ1OfU7Nee18mbhtukHOEc/59Q4I3igCK+pZQTk5QC1PkVHxW+lnRW2Rd8V6rXydiOGVFZ69uVnLQfMqItIChgOGD8IZOioeN6JI3lseYZ58TTpROkk8NU0hUSVQ+Wi9fjF+hYJ9op2qOdFp4gYqeiqSLd5GQTl6byU6kT3xPr1AZUBZRSVFsUp9SuVL+U5pT41QRVA5ViVdRV6JZfVtUW11bj13lXedd9154XoNeml63XxhgUmFMYpdi2GOnZTtmAmZDZvRnbWghaJdpy2xfbSptaW4vbp11MnaHeGx6P3zgfQV9GH1efbGAFYADgK+AsYFUgY+CKoNSiEyIYYsbjKKM/JDKkXWScXg/kvyVpJZNmAWZmZrYnTtSW1KrU/dUCFjVYvdv4Ixqj1+euVFLUjtUSlb9ekCRd51gntJzRG8JgXB1EV/9YNqaqHLbj7xrZJgDTspW8FdkWL5aWmBoYcdmD2YGaDlosW33ddV9OoJum0JOm09QU8lVBl1vXeZd7mf7bJl0c3gCilCTlojfV1Bep2MrULVQrFGNZwBUyVheWbtbsF9pYk1joWg9a3NuCHB9kcdygHgVeCZ5bWWOfTCD3IjBjwmWm1JkVyhnUH9qjKFRtFdClipYOmmKgLRUsl0OV/x4lZ36T1xSSlSLZD5mKGcUZ/V6hHtWfSKTL2hcm617OVMZUYpSN1vfYvZkrmTmZy1ruoWpltF2kJvWY0yTBpurdr9mUk4JUJhTwlxxYOhkkmVjaF9x5nPKdSN7l36ChpWLg4zbkXiZEGWsZqtri07VTtRPOk9/UjpT+FPyVeNW21jrWctZyVn/W1BcTV4CXitf12AdYwdlL1tcZa9lvWXoZ51rYmt7bA9zRXlJecF8+H0ZfSuAooECgfOJlopeimmKZoqMiu6Mx4zclsyY/GtvTotPPE+NUVBbV1v6YUhjAWZCayFuy2y7cj50vXXUeMF5OoAMgDOB6oSUj55sUJ5/Xw+LWJ0revqO+FuNlutOA1PxV/dZMVrJW6RgiW5/bwZ1vozqW5+FAHvgUHJn9IKdXGGFSn4egg5RmVwEY2iNZmWccW55Pn0XgAWLHY7KkG6Gx5CqUB9S+lw6Z1NwfHI1kUyRyJMrguVbwl8xYPlOO1PWW4hiS2cxa4py6XPgei6Ba42jkVKZllESU9dUalv/Y4hqOX2slwBW2lPOVGhbl1wxXd5P7mEBYv5tMnnAect9Qn5Nf9KB7YIfhJCIRolyi5COdI8vkDGRS5FslsaRnE7AT09RRVNBX5NiDmfUbEFuC3NjfiaRzZKDU9RZGVu/bdF5XX4ufJtYfnGfUfqIU4/wT8pc+2Yld6x644Icmf9Rxl+qZexpb2uJbfNulm9kdv59FF3hkHWRh5gGUeZSHWJAZpFm2W4aXrZ90n9yZviFr4X3ivhSqVPZWXNej1+QYFWS5JZkULdRH1LdUyBTR1PsVOhVRlUxVhdZaFm+WjxbtVwGXA9cEVwaXoReil7gX3Bif2KEYttjjGN3ZgdmDGYtZnZnfmiiah9qNWy8bYhuCW5YcTxxJnFndcd3AXhdeQF5ZXnweuB7EXynfTmAloPWhIuFSYhdiPOKH4o8ilSKc4xhjN6RpJJmk36UGJacl5hOCk4ITh5OV1GXUnBXzlg0WMxbIl44YMVk/mdhZ1ZtRHK2dXN6Y4S4i3KRuJMgVjFX9Jj+Yu1pDWuWce1+VIB3gnKJ5pjfh1WPsVw7TzhP4U+1VQdaIFvdW+lfw2FOYy9lsGZLaO5pm214bfF1M3W5dx95XnnmfTOB44KvhaqJqoo6jquPm5Aykd2XB066TsFSA1h1WOxcC3UaXD2BTooKj8WWY5dteyWKz5gIkWJW81OokBdUOVeCXiVjqGw0cIp3YXyLf+CIcJBCkVSTEJMYlo90XprEXQddaWVwZ6KNqJbbY25nSWkZg8WYF5bAiP5vhGR6W/hOFnAsdV1mL1HEUjZS4lnTX4FgJ2IQZT9ldGYfZnRo8mgWa2NuBXJydR9223y+gFZY8Ij9iX+KoIqTisuQHZGSl1KXWWWJeg6BBpa7Xi1g3GIaZaVmFGeQd/N6TXxNfj6BCoysjWSN4Y5feKlSB2LZY6VkQmKYii16g3vAiqyW6n12ggyHSU7ZUUhTQ1NgW6NcAlwWXd1iJmJHZLBoE2g0bMltRW0XZ9NvXHFOcX1ly3p/e6192n5Kf6iBeoIbgjmFpopujM6N9ZB4kHeSrZKRlYObrlJNVYRvOHE2UWh5hX5VgbN8zlZMWFFcqGOqZv5m/Wlactl1j3WOeQ55VnnffJd9IH1EhgeKNJY7kGGfIFDnUnVTzFPiUAlVqljuWU9yPVuLXGRTHWDjYPNjXGODYz9ju2TNZelm+V3jac1p/W8VceVOiXXpdvh6k3zffc99nIBhg0mDWIRshLyF+4jFjXCQAZBtk5eXHJoSUM9Yl2GOgdOFNY0IkCBPw1B0UkdTc2BvY0lnX24sjbOQH0/XXF6MymXPfZpTUoiWUXZjw1tYW2tcCmQNZ1GQXE7WWRpZKmxwilFVPlgVWaVg8GJTZ8GCNWlVlkCZxJooT1NYBlv+gBBcsV4vX4VgIGFLYjRm/2zwbt6AzoF/gtSIi4y4kACQLpaKntub207jU/BZJ3sskY2YTJ35bt1wJ1NTVURbhWJYYp5i02yib+90IooXlDhvwYr+gzhR54b4U+pT6U9GkFSPsFlqgTFd/Xrqj79o2ow3cvicSGo9irBOOVNYVgZXZmLFY6Jl5mtObeFuW3Ctd+1673uqfbuAPYDGhsuKlZNbVuNYx18+Za1mlmqAa7V1N4rHUCR35VcwXxtgZWZ6bGB19Hoaf26B9IcYkEWZs3vJdVx6+XtRhMSQEHnpepKDNlrhd0BOLU7yW5lf4GK9Zjxn8WzohmuId4o7kU6S85nQahdwJnMqgueEV4yvTgFRRlHLVYtb9V4WXjNegV8UXzVfa1+0YfJjEWaiZx1vbnJSdT33OoB0gTmBeId2ir+K3I2FjfOSmpV3mAKc5VLFY1d29GcVbIhzzYzDk66Wc20lWJxpDmnMj/2TmnXbkBpYWmgCY7Rp+09Dbyxn2I+7hSZ9tJNUaT9vcFdqWPdbLH0scipUCpHjnbROrU9OUFxQdVJDjJ5USFgkW5peHV6VXq1e918fYIxitWM6Y9Bor2xAeId5jnoLfeCCR4oCiuaORJATkLiRLZHYnw5s5WRYZOJldW70doR7G5Bpk9FuulTyX7lkpI9Nj+2SRFF4WGtZKVxVXpdt+36PdRyMvI7imFtwuU8da79vsXUwlvtRTlQQWDVYV1msXGBfkmWXZ1xuIXZ7g9+M7ZAUkP2TTXgleDpSql6mVx9ZdGASUBJRWlGsUc1SAFUQWFRYWFlXW5Vc9l2LYLxilWQtZ3FoQ2i8aN92123Ybm9tm3BvcchfU3XYeXd7SXtUe1J81n1xUjCEY4VpheSKDosEjEaOD5ADkA+UGZZ2mC2aMJXYUM1S1VQMWAJcDmGnZJ5tHnezeuWA9IQEkFOShVzgnQdTP1+XX7NtnHJ5d2N5v3vka9Jy7IqtaANqYVH4eoFpNFxKnPaC61vFkUlwHlZ4XG9gx2VmbIyMWpBBmBNUUWbHkg1ZSJCjUYVOTVHqhZmLDnBYY3qTS2limbR+BHV3U1dpYI7fluNsXU6MXDxfEI/pUwKM0YCJhnle/2XlTnNRZVmCXD+X7k77WYpfzYqNb+F5sHliW+eEcXMrcbFedF/1Y3tkmnHDfJhOQ178TktX3FaiYKlvw30NgP2BM4G/j7KJl4akXfRiimStiYdnd2zibT50Nng0WkZ/dYKtmaxP817DYt1jkmVXZ292w3JMgMyAuo8pkU1QDVf5WpJohWlzcWRy/Yy3WPKM4JZqkBmHf3nkd+eEKU8vUmVTWmLNZ89synZ9e5R8lYI2hYSP62bdbyByBn4bg6uZwZ6mUf17sXhye7iAh3tIauheYYCMdVF1YFFrkmJujHZ6kZea6k8Qf3BinHtPlaWc6VZ6WFmG5Ja8TzRSJFNKU81T214GZCxlkWd/bD5sTnJIcq9z7XVUfkGCLIXpjKl7xJHGcWmYEpjvYz1maXVqduR40IVDhu5TKlNRVCZZg16HX3xgsmJJYnliq2WQa9RszHWydq54kXnYfct/d4CliKuKuYy7kH+XXpjbagt8OFCZXD5frmeHa9h0NXcJf46fO2fKehdTOXWLmu1fZoGdg/GAmF88X8V1YntGkDxoZ1nrWpt9EHZ+iyxP9V9qahlsN28CdOJ5aIhoilWMeV7fY891xXnSgteTKJLyhJyG7ZwtVMFfbGWMbVxwFYynjNOYO2VPdPZODU7YV+BZK1pmW8xRqF4DXpxgFmJ2ZXdlp2ZubW5yNnsmgVCBmoKZi1yMoIzmjXSWHJZET65kq2tmgh6EYYVqkOhcAWlTmKiEeoVXTw9Sb1+pXkVnDXmPgXmJB4mGbfVfF2JVbLhOz3Jpm5JSBlQ7VnRYs2GkYm5xGllufIl83n0ag=";
 
-// 簡易Base64デコーダ
+/// 簡易的なBase64デコーダです。
+///
+/// # 引数
+///
+/// * `s` - デコード対象のBase64文字列
+///
+/// # 戻り値
+///
+/// デコードされたバイト列を返します。
 pub fn decode_base64(s: &str) -> Vec<u8> {
     let mut bytes = Vec::new();
     let mut buffer = 0u32;
@@ -262,7 +336,11 @@ pub fn decode_base64(s: &str) -> Vec<u8> {
     bytes
 }
 
-// マッピングテーブルの構築
+/// JISとUnicodeのマッピングテーブル（94x94の配列に相当）を構築します。
+///
+/// # 戻り値
+///
+/// 各インデックスがJISコードポイントに対応し、値がUnicodeコードポイントである `Vec<u16>` を返します。
 pub fn load_jis_table() -> Vec<u16> {
     let raw_bytes = decode_base64(JIS_TO_UNICODE_BASE64);
     let mut table = Vec::with_capacity(raw_bytes.len() / 2);
@@ -273,7 +351,15 @@ pub fn load_jis_table() -> Vec<u16> {
     table
 }
 
-// 文字コード判定ステートマシン
+/// 与えられたバイト列の文字コード（UTF-8, Shift_JIS, EUC-JP, ASCII）を自動検出します。
+///
+/// # 引数
+///
+/// * `bytes` - 判定対象 of バイト列
+///
+/// # 戻り値
+///
+/// 検出された `Encoding` を返します。検出できなかった場合は `Encoding::Unknown` を返します。
 pub fn guess_encoding(bytes: &[u8]) -> Encoding {
     if bytes.is_empty() {
         return Encoding::Ascii;
@@ -417,6 +503,16 @@ pub fn guess_encoding(bytes: &[u8]) -> Encoding {
     Encoding::Unknown
 }
 
+/// Shift_JISの文字コード（2バイト）をEUC-JPの文字コードに変換します。
+///
+/// # 引数
+///
+/// * `s1` - Shift_JISの第1バイト
+/// * `s2` - Shift_JISの第2バイト
+///
+/// # 戻り値
+///
+/// 変換に成功した場合は `Some((e1, e2))`、無効なバイトの場合は `None` を返します。
 pub fn sjis_to_eucjp(s1: u8, s2: u8) -> Option<(u8, u8)> {
     let s1_val = s1 as i32;
     let s2_val = s2 as i32;
@@ -449,6 +545,16 @@ pub fn sjis_to_eucjp(s1: u8, s2: u8) -> Option<(u8, u8)> {
     }
 }
 
+/// EUC-JPの文字コード（2バイト）をShift_JISの文字コードに変換します。
+///
+/// # 引数
+///
+/// * `e1` - EUC-JPの第1バイト
+/// * `e2` - EUC-JPの第2バイト
+///
+/// # 戻り値
+///
+/// 変換後のShift_JISコード `(s1, s2)` を返します。
 pub fn eucjp_to_sjis(e1: u8, e2: u8) -> (u8, u8) {
     let ku = e1 as i32 - 0xA0;
     let ten = e2 as i32 - 0xA0;
@@ -467,6 +573,19 @@ pub fn eucjp_to_sjis(e1: u8, e2: u8) -> (u8, u8) {
     (s1 as u8, s2 as u8)
 }
 
+/// 指定されたバイト列を指定された文字コードからUnicode（`Vec<char>`）にデコードします。
+///
+/// マッピングテーブルを使用して、Shift_JISやEUC-JPからの変換を行います。
+///
+/// # 引数
+///
+/// * `bytes` - デコード対象のバイト列
+/// * `from_enc` - デコード元の文字コード
+/// * `table` - JIS-Unicodeマッピングテーブル
+///
+/// # 戻り値
+///
+/// 変換された `Vec<char>` を返します。
 pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec<char> {
     let mut chars = Vec::new();
     let mut i = 0;
@@ -567,6 +686,18 @@ pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec
     chars
 }
 
+/// Unicodeの文字スライス（`chars`）を指定された文字コードのバイト列にエンコードします。
+///
+/// # 引数
+///
+/// * `chars` - エンコード対象の文字スライス
+/// * `to_enc` - エンコード先の文字コード
+/// * `unicode_to_jis` - UnicodeからJISへのマッピングハッシュマップ
+/// * `actual_crlf` - 改行コードをCRLFにするか（`true`でCRLF、`false`でLF）
+///
+/// # 戻り値
+///
+/// エンコードされたバイト列 `Vec<u8>` を返します。
 pub fn encode_from_unicode(
     chars: &[char],
     to_enc: Encoding,

@@ -1,8 +1,7 @@
-// =========================================================================
-// MyNKF (Standard Library Only Edition)
-// Compiled Size: ~250KB (stripped release build)
-// CLI Executable Entry Point
-// =========================================================================
+//! MyNKF CLI (標準ライブラリのみ使用版)
+//!
+//! コマンドラインからファイルの文字コード検出および変換を行うツールです。
+//! リリースビルドのバイナリサイズは約250KB（ストリップ後）と非常に軽量です。
 
 #![allow(dead_code, unused_variables, unused_mut)]
 
