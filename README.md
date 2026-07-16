@@ -6,7 +6,7 @@
 [![Rust Version](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://img.shields.io/badge/rust-1.85%2B-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-👉 **[日本語版のドキュメントはこちら (Japanese Version is here)](README.ja.md)**
+👉 **[日本語版のドキュメントはこちら (Japanese Version is here)](README_JA.md)**
 
 A lightweight, high-performance Japanese character encoding conversion utility (CLI & GUI editions) modeled after the classic `nkf` (Network Kanji Filter), optimized specifically for Windows PCs with limited resources.
 

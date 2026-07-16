@@ -2,6 +2,26 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.5.5] - 2026-07-16
+
+### 追加
+- **システム設計書 (`docs/ARCHITECTURE.md`) の作成**:
+  - システム概要、採用技術スタック、ディレクトリ構造の意図、主要モジュールの連携データフロー（Mermaid構成図等）を構造化して明文化。
+- **AI開発指示書 (`docs/INSTRUCTIONS.md`) の作成**:
+  - 命名規則、エラーハンドリング方針、モジュール分割基準、AI用出力フォーマットなどのコーディングガイドラインを定義。
+- **開発タスク管理表 (`docs/TODO.md`) の作成**:
+  - 実装済み機能（Done）、直近タスク（Todo）、および将来の拡張提案（Backlog）を可視化。
+
+### 変更
+- **ドキュメント命名規則の統一**:
+  - プロジェクト内のドキュメントファイルを大文字スネークケース（`UPPER_SNAKE_CASE`）に統一。
+  - `README.ja.md` を `README_JA.md` に変更。
+  - `docs/project_template_guide.md` を `docs/PROJECT_TEMPLATE_GUIDE.md` に変更。
+  - ルールファイル `.agents/AGENTS.md` の記述、および `README.md` 内の日本語版ドキュメントリンクを `README_JA.md` に追従・修正。
+  - `.agents/AGENTS.md` のドキュメント自動更新ルールをリファクタリングし、今回追加した設計書・開発指示書・タスク管理表のメンテナンスタスクを追記。
+
+---
+
 ## [1.5.4] - 2026-07-14
 
 ### 追加
@@ -32,7 +52,7 @@
   - 親ディレクトリにある共有ライブラリ `common_lib` への相対パス依存（`../common_lib`）を解決するため、ビルド前に `common_lib` リポジトリを並階層にクローンするステップを追加しました。また、トークン不在時にエラーで止まらないよう `secrets.PAT` フォールバック（`${{ secrets.PAT || github.token }}`）を設定しました。
   - 各ジョブに `defaults.run.working-directory: MyNKF` を設定し、リポジトリチェックアウト時のサブディレクトリ構成に対応しました。
   - `release.yml` 内のリリースアセット指定パスを、実際の出力先（`MyNKF/target/release/MyNKF-windows-x64.zip`）に修正し、ビルドエラーを招いていた `mynkf.exe` の大文字小文字の不整合（`MyNKF.exe`）を修正しました。
-  - ローカルでビルドやテストを実行する際に、事前に親ディレクトリに `common_lib` をクローンしておく必要がある前提条件を `README.md` および `README.ja.md` に追記しました。
+  - ローカルでビルドやテストを実行する際に、事前に親ディレクトリに `common_lib` をクローンしておく必要がある前提条件を `README.md` および `README_JA.md` に追記しました。
 - **eframe / egui 0.35.0 へのアップグレードに伴う破壊的変更対応**:
   - `eframe::App` のエントリーポイントを `App::update` から、新仕様の `App::ui` へ移行しました。
   - `Rounding` が `CornerRadius` に変更されたことに伴い、`window_corner_radius` フィールドへの変更および `CornerRadius::same` の適用を行いました。
@@ -53,7 +73,7 @@
   - GUI アプリの Windows API 独自の命名規則に起因する `upper_case_acronyms` 警告を、`#[allow(clippy::upper_case_acronyms)]` アトリビュートを `win32` モジュールに付与することで抑制しました。
   - ライブラリ (`src/lib.rs`) において、22 箇所の Clippy 警告（`manual_range_contains` による `(start..=end).contains(&x)` への推奨書き換え、`collapsible_if` の結合、`manual_flatten` の適用など）を全面的に修正・解消しました。
 - **ドキュメント改善とステータスバッジの追加**:
-  - `README.md` および `README.ja.md` のタイトル直下に、GitHub Actions の CI/Release ビルドステータスバッジ、動作プラットフォーム (Windows)、推奨 Rust バージョン (1.85+)、および MIT ライセンスのバッジを追加しました。
+  - `README.md` および `README_JA.md` のタイトル直下に、GitHub Actions の CI/Release ビルドステータスバッジ、動作プラットフォーム (Windows)、推奨 Rust バージョン (1.85+)、および MIT ライセンスのバッジを追加しました。
   - `.agents/AGENTS.md` の CI/CD 維持ルールに、ステータスバッジの表示を維持する旨のガイドラインを追記しました。
 - **バージョン表示の同期化**:
   - `Cargo.toml` のバージョン設定を `1.5.1` に更新しました。
@@ -144,7 +164,7 @@
 - **未知のオプションに対するエラー終了処理の追加**:
   - サポートされていないオプション（`-` から始まる未知の引数）が指定された際、以前は無視されて標準入力のパイプ待ち（無応答状態）になっていましたが、エラーと使用方法を出力した上で、即座に終了ステータス `1` で正常にエラー終了するように修正しました。
 - **仕様書およびドキュメントの補足**:
-  - 本家 `nkf` との完全な互換性を維持するために定義されている `--versio` オプションの背景（独自引数パースによる前方一致の手動エミュレーションまたはタイポ救済）について、`README.ja.md`、`README.md`、および `docs/SPEC.md` に注釈を追記しました。
+  - 本家 `nkf` との完全な互換性を維持するために定義されている `--versio` オプションの背景（独自引数パースによる前方一致の手動エミュレーションまたはタイポ救済）について、`README_JA.md`、`README.md`、および `docs/SPEC.md` に注釈を追記しました。
 
 ---
 
@@ -154,9 +174,9 @@
 - **ヘルプ・バージョン表示オプション**:
   - シミュレータの CLI および Rust 実装コード (`src/components/ObsidianDocs.tsx`) 双方に `--help`, `-h`, `--version`, `--versio`, `-v` オプションを追加しました。
 - **各種ドキュメント類の整備**:
-  - `README.md`、`README.ja.md`、`CHANGELOG.md`、`docs/SPEC.md`、`docs/DIAGRAM.md`、`docs/FOOTPRINTS.md`、`docs/TEST_REPORT.md` の作成。
+  - `README.md`、`README_JA.md`、`CHANGELOG.md`、`docs/SPEC.md`、`docs/DIAGRAM.md`、`docs/FOOTPRINTS.md`、`docs/TEST_REPORT.md` の作成。
 - **多言語対応とリンクの整備**:
-  - `README.md`（英語）と `README.ja.md`（日本語）のルート配置および相互リンク。
+  - `README.md`（英語）と `README_JA.md`（日本語）のルート配置および相互リンク。
 
 ---
 
