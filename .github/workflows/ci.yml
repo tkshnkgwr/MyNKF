@@ -26,14 +26,14 @@ jobs:
     # MyNKFは親ディレクトリの ../common_lib に相対パスで依存しているため、
     # ワークスペース内に MyNKF と common_lib を並行してチェックアウトします。
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: MyNKF
 
     # 依存ライブラリである common_lib をクローンします。
     # secrets.PAT が設定されていない場合は、デフォルトの github.token にフォールバックします。
     - name: Checkout common_lib
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: tkshnkgwr/common_lib
         path: common_lib
