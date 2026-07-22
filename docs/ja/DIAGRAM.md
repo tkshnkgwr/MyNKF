@@ -1,3 +1,5 @@
+[English](../en/DIAGRAM.md) | **日本語版**
+
 # システム構成図 (DIAGRAM.md)
 
 本ドキュメントでは、`MyNKF` の処理機構、および Web デスクトップシミュレータにおけるデータフローを Mermaid ダイアグラムを用いて表現します。
@@ -85,7 +87,7 @@ graph TD
             C --> C1[1. CHANGELOG エクスポート]
             C --> C2[2. SPEC.md 仕様書エクスポート]
             C --> C3[3. Rust src/main.rs 全ソース]
-            C --> C4[4. TEST_REPORT テスト結果]
+            C --> C4[4. TESTING テスト結果]
             C --> C5[5. DIAGRAM.md システム構成図]
         end
     end
@@ -96,6 +98,7 @@ graph TD
     C3 -->|Clipboard Copier / ZIP Download| User
     C4 -->|Clipboard Copier / ZIP Download| User
     C5 -->|Clipboard Copier / ZIP Download| User
+```
 
 ---
 
@@ -142,5 +145,4 @@ graph TD
             Realtime -->|コピーボタン| Clip[18. mynkf で出力文字コードのバイト列を模擬デコードしクリップボード転送]
         end
     end
-```
 ```

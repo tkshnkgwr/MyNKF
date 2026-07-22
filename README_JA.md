@@ -6,7 +6,7 @@
 [![Rust Version](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://img.shields.io/badge/rust-1.85%2B-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-👉 **[English Version is here](README.md)**
+[English README](README.md) | **日本語版**
 
 低スペック・リソース制限のある Windows 環境での超高速・低負荷な動作を最優先に設計された、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の軽量互換ユーティリティ（CLI版 ＆ GUI版）です。
 
@@ -71,6 +71,12 @@ cargo test
 
 # リリースビルド（CLI版 & GUI版の双方を極小・最適化ビルド）
 cargo build --release
+
+# CLI版単体のみを軽量ビルド（GUI依存クレートを完全スキップ）
+cargo build --release --no-default-features --features cli
+
+# GUI版単体のみをビルド
+cargo build --release --no-default-features --features gui
 ```
 
 ビルドが完了すると、`target/release/` ディレクトリ内に以下のバイナリが生成されます。
@@ -104,6 +110,23 @@ cargo run --bin mynkf-gui
 # リリース用単体実行バイナリの起動
 .\target\release\mynkf-gui.exe
 ```
+
+## 📚 関連ドキュメント
+
+詳細なドキュメントは `docs/ja/` ディレクトリに用意されています：
+- [機能仕様書](docs/ja/SPEC.md)
+- [システムアーキテクチャ設計書](docs/ja/ARCHITECTURE.md)
+- [システム構成図・実行フロー](docs/ja/DIAGRAM.md)
+- [リソース消費・フットプリント記録](docs/ja/FOOTPRINTS.md)
+- [AIエージェント開発指示書](docs/ja/INSTRUCTIONS.md)
+- [テスト方針・実行ガイド](docs/ja/TESTING.md)
+- [リリース手順書](docs/ja/RELEASE.md)
+- [貢献ガイドライン](docs/ja/CONTRIBUTING.md)
+- [セキュリティポリシー](docs/ja/SECURITY.md)
+- [TODO・ロードマップ](docs/ja/TODO.md)
+- [変更履歴](docs/ja/CHANGELOG.md)
+
+---
 
 ## ライセンス
 

@@ -10,17 +10,26 @@ path = "src/lib.rs"
 [[bin]]
 name = "mynkf"
 path = "src/main.rs"
+required-features = ["cli"]
 
 [[bin]]
 name = "mynkf-gui"
 path = "src/bin/mynkf-gui.rs"
+required-features = ["gui"]
+
+[features]
+default = ["cli", "gui"]
+cli = []
+gui = ["dep:eframe", "dep:egui", "dep:rfd"]
 
 [dependencies]
-eframe = "0.35"
-egui = "0.35"
-rfd = "0.17"
-# 2026-07-03: 共有ライブラリの参照追加
+# 共有ライブラリの参照追加
 common_lib = { path = "../common_lib" }
+
+# GUI依存 (オプショナル)
+eframe = { version = "0.35", optional = true }
+egui = { version = "0.35", optional = true }
+rfd = { version = "0.17", optional = true }
 
 # Target-specific dependencies removed to use direct Win32 FFI for lower footprint
 

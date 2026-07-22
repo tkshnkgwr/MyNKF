@@ -1,3 +1,5 @@
+[English](../en/SPEC.md) | **日本語版**
+
 # 仕様書 (SPEC.md)
 
 本ドキュメントは、低リソース環境向けに最適化された `MyNKF` およびその Web シミュレータの最新の機能仕様を定義するものです。
@@ -14,8 +16,9 @@
 ## 2. 動作環境・制約
 - **ターゲットOS**: Windows 10 / 11（低リソースPCを想定、Rustビルドはクロスプラットフォーム動作可能）
 - **依存関係**: 
-  - **CLI版 (`mynkf`)**: 外部クレート依存なし (純粋な Rust `std` のみ使用)
-  - **GUI版 (`mynkf-gui`)**: GUIライブラリ `eframe`/`egui` およびファイルダイアログ `rfd` を使用。Windows Native API に関しては `windows-sys` などの巨大クレートを導入せず、自前で `extern "system"` 宣言（直接 FFI）を行うことで、バイナリサイズとコンパイル時間を最小化。
+  - **CLI版 (`mynkf`)**: `cli` フィーチャーにより外部クレート依存なし (純粋な Rust `std` のみ使用) でビルド可能。
+  - **GUI版 (`mynkf-gui`)**: `gui` フィーチャーによりオプショナル依存として GUIライブラリ `eframe`/`egui` およびファイルダイアログ `rfd` を有効化。Windows Native API に関しては `windows-sys` などの巨大クレートを導入せず、自前で `extern "system"` 宣言（直接 FFI）を行うことで、バイナリサイズとコンパイル時間を最小化。
+  - **Cargo Features 分離**: `[features]` (`default = ["cli", "gui"]`) により、CLI 単体ビルド (`cargo build --no-default-features --features cli`) 時は GUI ライブラリのビルドを完全にスキップして超高速・軽量なコンパイルを実現。
 - **バイナリサイズ目標**: 
   - CLI版：`cargo build --release` 時に `strip` オプション等を適用し、約 200KB〜250KB。
   - GUI版：サイズ優先の最適化およびストリップを適用し、グラフィック機能内蔵でありながら数MB（3〜5MB程度）の極小サイズに抑える。
@@ -118,7 +121,7 @@ Webブラウザ上で動作するシミュレータは、以下の性質を備�
 - **仕様**: Windowsのネイティブフレーム（タイトルバー、リサイズ枠、および境界線の影）を完全に非表示にし、独自の透過フラットデザインを実現します。
 - **制御ロジック**:
   - `eframe::NativeOptions` の `viewport` を用いて、`decorations: false`（装飾なし）および `transparent: true`（背景透過）を指定します。
-  - アプリケーション初期化の最初のフレームにおいて、Win32の DWM (Desktop Window Manager) API である `DwmSetWindowAttribute` を呼び出し、`DWMWA_NCRENDERING_POLICY` を `DWMNCRP_DISABLED` に設定して、Windowsシステムが提供するデフォルトのウィンドウ影や薄い枠を完全に無効化します。
+  - アプリケーション初期化の最初のフレームにおいて、Win32の DWM (Desktop Window Manager) API である `DwmSetWindowAttribute` を呼び出し、`DWMWA_NCRENDERING_POLICY` を `DWMNCRP_DISABLED` に設定して、Windowsシステムが提供するデフォルト의 ウィンドウ影や薄い枠を完全に無効化します。
 
 ### 6.3 カスタムヘッダーとウィンドウ移動
 - **仕様**: ネイティブのタイトルバーが無い代わりに、UIの最上部に自作のヘッダーバーを設け、閉じる `[X]`、最小化 `[-]` 操作およびウィンドウのドラッグ移動を提供します。

@@ -1,4 +1,6 @@
-# プロジェクト初期設定テンプレートガイド (project_template_guide.md)
+[English](../en/PROJECT_TEMPLATE_GUIDE.md) | **日本語版**
+
+# プロジェクト初期設定テンプレートガイド (PROJECT_TEMPLATE_GUIDE.md)
 
 このドキュメントでは、Rust プロジェクト（特に CLI / GUI デスクトップアプリ）の開発環境の標準化、自動ビルド・テスト、およびリリースデプロイメントを迅速にセットアップするための各種テンプレートファイルと設定手順について説明します。
 

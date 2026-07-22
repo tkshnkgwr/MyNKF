@@ -6,7 +6,7 @@
 [![Rust Version](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://img.shields.io/badge/rust-1.85%2B-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-👉 **[日本語版のドキュメントはこちら (Japanese Version is here)](README_JA.md)**
+**English** | [日本語版](README_JA.md)
 
 A lightweight, high-performance Japanese character encoding conversion utility (CLI & GUI editions) modeled after the classic `nkf` (Network Kanji Filter), optimized specifically for Windows PCs with limited resources.
 
@@ -69,9 +69,15 @@ cargo test
 
 # Build stripped release version for both CLI & GUI binaries
 cargo build --release
+
+# Build lightweight CLI binary only (without GUI dependencies)
+cargo build --release --no-default-features --features cli
+
+# Build GUI binary only
+cargo build --release --no-default-features --features gui
 ```
 
-Once compilation completes, the following executables will be available under `target/release/`:
+Once compilation completes, the executables will be available under `target/release/`:
 - `mynkf.exe` (CLI character converter)
 - `mynkf-gui.exe` (GUI desktop character converter)
 
@@ -102,6 +108,23 @@ cargo run --bin mynkf-gui
 # Launch final built GUI binary
 .\target\release\mynkf-gui.exe
 ```
+
+## 📚 Documentation
+
+Detailed documentation is available in the `docs/en/` directory:
+- [Specifications](docs/en/SPEC.md)
+- [Architecture Design](docs/en/ARCHITECTURE.md)
+- [System Diagram & Flows](docs/en/DIAGRAM.md)
+- [Resource Footprint Measurements](docs/en/FOOTPRINTS.md)
+- [AI Developer Instructions](docs/en/INSTRUCTIONS.md)
+- [Testing Guide & Reports](docs/en/TESTING.md)
+- [Release Guide](docs/en/RELEASE.md)
+- [Contributing Guidelines](docs/en/CONTRIBUTING.md)
+- [Security Policy](docs/en/SECURITY.md)
+- [Task Roadmap](docs/en/TODO.md)
+- [Changelog](docs/en/CHANGELOG.md)
+
+---
 
 ## License
 

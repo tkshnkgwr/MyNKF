@@ -3,6 +3,7 @@
 //! eframe / egui を使用したデスクトップアプリケーションです。
 //! Windows 10/11 などの低リソース環境用に設計された、超軽量で高審美性な文字コードコンバータです。
 
+#![cfg(feature = "gui")]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;

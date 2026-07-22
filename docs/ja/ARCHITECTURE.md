@@ -1,3 +1,5 @@
+[English](../en/ARCHITECTURE.md) | **日本語版**
+
 # アーキテクチャ設計書 (ARCHITECTURE.md)
 
 本ドキュメントは、低リソース環境向けに最適化された文字コード変換ユーティリティ `MyNKF`（CLI版およびGUI版）の設計思想、採用技術スタック、ディレクトリ構造の意図、およびモジュール間のデータフローについて記述するものです。
@@ -22,11 +24,15 @@
 ### 2.1 言語とエディション
 - **Rust (Edition 2024, v1.85+)**: Edition 2024 の新機能（`let_chains` 等）を活用し、安全かつ簡潔な記述を行っています。
 
-### 2.2 依存ライブラリ（Crates）と構成
-- **CLI版 (`mynkf`)**: **外部依存なし（純粋な Rust `std` のみ使用）**。文字コード変換テーブル（JIS X 0208）や自動判定ロジック、グロブ展開などを標準ライブラリのみで自作しています。
+### 2.2 依存ライブラリ（Crates）と Cargo Features
+- **Cargo Features による分離 (`[features]`)**:
+  - `default = ["cli", "gui"]`
+  - `cli = []`: CLI版エントリーポイントを有効化。外部クレート依存ゼロ（純粋な Rust `std` のみ使用）。
+  - `gui = ["dep:eframe", "dep:egui", "dep:rfd"]`: GUI版エントリーポイントおよび描画・ダイアログ用クレートを有効化。
+- **CLI版 (`mynkf`)**: **外部依存なし（純粋な Rust `std` のみ使用）**。文字コード変換テーブル（JIS X 0208）や自動判定ロジック、グロブ展開などを標準ライブラリのみで自作しています。`cargo build --no-default-features --features cli` により、GUI依存クレートを一切ビルドせず超軽量・爆速でビルド可能。
 - **GUI版 (`mynkf-gui`)**:
-  - `eframe` / `egui` (v0.35): UI描画のための immediate mode GUI フレームワーク。
-  - `rfd` (v0.17): クロスプラットフォームなファイル選択ダイアログ。
+  - `eframe` / `egui` (v0.35, optional): UI描画のための immediate mode GUI フレームワーク。
+  - `rfd` (v0.17, optional): クロスプラットフォームなファイル選択ダイアログ。
   - **Win32 API 直接 FFI 呼び出し**: `windows-sys` などの巨大クレートを導入せず、二重起動防止やウィンドウ枠・影の排除に必要な API（`kernel32`, `user32`, `dwmapi`）を `extern "system"` で自前定義しています。
 - **ワークスペース外依存**:
   - `common_lib` (相対パス `../common_lib` 参照): 共通処理ライブラリ。
@@ -53,21 +59,40 @@ MyNKF/
 │   ├── ci.yml                       # 自動テスト・ビルド検証CI (Markdownのみの修正時はスキップ)
 │   └── release.yml                  # タグプッシュ時のWindowsバイナリパッケージ・自動リリース
 ├── docs/
-│   ├── ARCHITECTURE.md              # 【本作】アーキテクチャ設計書
-│   ├── DIAGRAM.md                   # Mermaidによるシステム構成図
-│   ├── FOOTPRINTS.md                # メモリ・バイナリサイズの計測記録
-│   ├── INSTRUCTIONS.md              # 【本作】AI向けコーディングスタイル指示書
-│   ├── PROJECT_TEMPLATE_GUIDE.md    # プロジェクト初期設定テンプレートガイド
-│   ├── SPEC.md                      # 詳細機能仕様書
-│   ├── TEST_REPORT.md               # 自動/手動テスト報告書
-│   └── TODO.md                      # 【本作】開発タスク・機能提案管理
+│   ├── ja/
+│   │   ├── ARCHITECTURE.md          # 【本作】アーキテクチャ設計書
+│   │   ├── DIAGRAM.md               # Mermaidによるシステム構成図
+│   │   ├── FOOTPRINTS.md            # メモリ・バイナリサイズの計測記録
+│   │   ├── INSTRUCTIONS.md          # AI向けコーディングスタイル指示書
+│   │   ├── PROJECT_TEMPLATE_GUIDE.md# プロジェクト初期設定テンプレートガイド
+│   │   ├── SPEC.md                  # 詳細機能仕様書
+│   │   ├── TESTING.md               # テスト計画・実行手順書
+│   │   ├── RELEASE.md               # リリース手順書
+│   │   ├── CONTRIBUTING.md          # 貢献ガイドライン
+│   │   ├── SECURITY.md              # セキュリティ方針
+│   │   ├── TODO.md                  # 開発タスク管理
+│   │   └── CHANGELOG.md             # 変更履歴の実体
+│   └── en/
+│       ├── ARCHITECTURE.md          # ARCHITECTURE (English)
+│       ├── DIAGRAM.md               # DIAGRAM (English)
+│       ├── FOOTPRINTS.md            # FOOTPRINTS (English)
+│       ├── INSTRUCTIONS.md          # INSTRUCTIONS (English)
+│       ├── PROJECT_TEMPLATE_GUIDE.md# PROJECT_TEMPLATE_GUIDE (English)
+│       ├── SPEC.md                  # SPEC (English)
+│       ├── TESTING.md               # TESTING (English)
+│       ├── RELEASE.md               # RELEASE (English)
+│       ├── CONTRIBUTING.md          # CONTRIBUTING (English)
+│       ├── SECURITY.md              # SECURITY (English)
+│       ├── TODO.md                  # TODO (English)
+│       └── CHANGELOG.md             # CHANGELOG (English)
 ├── src/
 │   ├── bin/
 │   │   └── mynkf-gui.rs             # GUI版エントリーポイント & UI描画
 │   ├── lib.rs                       # コアロジックライブラリ (mynkf)
-│   └── main.rs                      # CLI版エントリーポイント & I/O制御
+│   ├── main.rs                      # CLI版エントリーポイント & I/O制御
+│   └── tests.rs                     # 単体テストモジュール (mynkf::tests)
 ├── Cargo.toml                       # 依存関係・最適化プロファイル定義
-├── CHANGELOG.md                     # 変更履歴
+├── CHANGELOG.md                     # 変更履歴案内リンク
 ├── README.md                        # 英語版総合案内
 └── README_JA.md                     # 日本語版総合案内
 ```
