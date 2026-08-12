@@ -42,7 +42,7 @@ MyNKF [options] [file...]
 | `-d` | `--lf` | Forces newline characters to `LF`. |
 | `-c` | `--crlf` | Forces newline characters to `CRLF`. |
 | `-h` | `--help` | Displays the help text and exits. |
-| `-v` | `--version`, `--versio` | Displays version info (`v1.5.0`) and exits. |
+| `-v` | `--version`, `--versio` | Displays version info (`v1.6.0`) and exits. |
 
 > [!NOTE]
 > `--versio` (missing the trailing `n`) is an alias maintained for backward compatibility with the original `nkf` behavior (front-matching command parsers and historical typo compatibility).
