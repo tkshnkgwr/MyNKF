@@ -11,13 +11,13 @@ This document records the measured and estimated resource footprints (binary siz
 By implementing custom character tables and heuristics without linking heavy third-party crates, MyNKF maintains an exceptionally small binary size.
 
 | Compile Configuration | Windows Executable Size (.exe) | Linux Executable Size | Notes |
-| :--- | :--- | :--- | :--- |
+|:---|:---|:---|:---|
 | `cargo build` (Debug) | ~3.2 MB | ~2.8 MB | Includes debug symbols |
 | `cargo build --release` | ~290 KB | ~260 KB | Optimization enabled |
 | `cargo build --release` + `strip = true` | ~210 KB | ~180 KB | Unused symbols stripped |
 | `cargo build --release` + profile tuning (2026-06-29) | **~170 KB** (v1.2.0: 169KB) | **~140 KB** | Measured results after applying full profile options |
 | `cargo build --release` + glob/size flags (v1.4.0) | **~215 KB** (Measured: 214KB) | - | Size increased due to custom wildcard expansion and formatting |
-| `cargo build --release` + shared library & GUI (v1.5.0) | **CLI: ~203 KB** <br>**GUI: ~2.79 MB** | - | GUI includes graphics (`eframe/egui`) and dialogs (`rfd`) but stays small using direct Win32 FFI |
+| `cargo build --release` + CLI unification / egui removal (v1.6.0) | **~203 KB** | - | Pure std CLI after completely removing GUI functionality and external dependencies |
 
 ### Recommended Settings for Size Optimization (`Cargo.toml`)
 Add the following configuration to `Cargo.toml` when building production releases:
@@ -46,12 +46,6 @@ Since the data processing logic utilizes streams, memory allocations are kept lo
 ### 2.2 Web Desktop Simulator
 The browser-based simulator relies on lightweight React states.
 - **Refresh Rates**: Configured at 1-second intervals to minimize GPU/CPU wakes, saving battery on mobile or low-spec systems.
-
-### 2.3 Desktop GUI App (`mynkf-gui`)
-Uses graphics backends (`eframe`/`egui`), but remains exceptionally low-spec compared to modern GUI applications.
-- **Physical Memory (Working Set)**: ~110 to 120 MB (on startup).
-  - Includes graphics DLLs (WGPU/OpenGL) and OS libraries.
-  - Private memory dedicated strictly to application buffers is only **~15 to 25 MB**, making it highly suitable for running as a background daemon.
 
 ---
 

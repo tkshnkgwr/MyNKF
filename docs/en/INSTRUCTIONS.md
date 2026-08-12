@@ -26,7 +26,7 @@ Follow standard Rust style guidelines.
 
 MyNKF focuses on robust error handling to allow continuous execution under daemon/background setups.
 
-- **Avoid Panic**: In library functions (`src/lib.rs`) and GUI entrypoints (`src/bin/mynkf-gui.rs`), try to avoid panicking functions like `unwrap()`, `expect()`, or `panic!`. Make sure file I/O or encoding errors do not crash the entire process.
+- **Avoid Panic**: In library functions (`src/lib.rs`) and CLI entrypoints (`src/main.rs`), try to avoid panicking functions like `unwrap()`, `expect()`, or `panic!`. Make sure file I/O or encoding errors do not crash the entire process.
 - **Error Propagation**: Return `Result<T, E>` or `Option<T>` for operations that might fail, propagating handling to callers.
   - Return clear types like `Result<(), String>` or `Option<(u8, u8)>` inside libraries.
   - The CLI entrypoint (`src/main.rs`) returns `std::io::Result` from `fn main()`, prints descriptions via `eprintln!`, and terminates gracefully with code `1` in case of failure.
@@ -42,14 +42,6 @@ To minimize binary size and memory foot prints, keep modules clean:
   Aggregates pure functions dealing with buffer processing (heuristics detection, decoding/encoding tables, newline normalizations, wildcard expansions). Skips external crate dependencies entirely.
 - **`src/main.rs` (CLI Entrypoint)**:
   Handles CLI-specific I/O (arguments parsing, terminal streams reading, print layouts).
-- **`src/bin/mynkf-gui.rs` (GUI Entrypoint)**:
-  Deals with immediate-mode layouts (`eframe`/`egui`), file picking integrations (`rfd`), and native Win32 FFI systems. Conditional compiler flag `#[cfg(feature = "gui")]` skips building this module when GUI feature is disabled.
-- **Build Commands with Features**:
-  Use the following commands to build specific binaries:
-  - Test CLI only: `cargo build --no-default-features --features cli`
-  - Test GUI only: `cargo build --no-default-features --features gui`
-  - Full compile: `cargo build` (default)
-- **Consolidation**: Shared logic across CLI/GUI must be extracted into `src/lib.rs`.
 
 ---
 

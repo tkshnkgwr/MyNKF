@@ -15,16 +15,9 @@ A "Web Desktop Simulator" is also provided to test the CLI and file conversions 
 
 ## 2. Operating Environment and Constraints
 - **Target OS**: Windows 10 / 11 (designed for low-resource PCs, cross-compilation is supported).
-- **Dependencies**:
-  - **CLI Version (`mynkf`)**: Can be built with zero external crates using the `cli` feature (Rust `std` only).
-  - **GUI Version (`mynkf-gui`)**: Utilizes `eframe`/`egui` for UI rendering and `rfd` for file dialogs via the `gui` feature. Instead of importing bloated crates like `windows-sys`, native Win32 APIs are declared directly via FFI (`extern "system"`) to minimize binary size and compilation time.
-  - **Cargo Features Separation**: Configured with `[features]` (`default = ["cli", "gui"]`). Building only the CLI (`cargo build --no-default-features --features cli`) entirely skips GUI dependency compilation, enabling ultra-fast, lightweight builds.
-- **Binary Size Targets**:
-  - CLI: ~200 KB to 250 KB (release build with `strip`).
-  - GUI: A few megabytes (approx. 3 to 5 MB) utilizing size-optimization and stripping.
-- **Memory Footprint**:
-  - CLI: Under a few megabytes (using stream/buffered processing).
-  - GUI: A few megabytes to dozens of megabytes (using immediate-mode rendering buffers in egui), suitable for low-spec background daemon usage.
+- **Dependencies**: Built with zero external crates (Rust standard library `std` only).
+- **Binary Size Targets**: ~200 KB to 250 KB (release build with `strip`).
+- **Memory Footprint**: Under a few megabytes (using stream/buffered processing).
 - **File Limit**:
   - To prevent excessive CPU/Memory exhaustion, the maximum number of files processed at once (including expanded wildcards) is limited to **100**. Exceeding this limit yields an error and terminates execution.
 
@@ -110,38 +103,4 @@ The simulator running on Web browsers provides:
 - **Downloads**: Immediate download links for converted outputs.
 - **Obsidian Export**: One-click copy/download of source codes in Markdown.
 
----
 
-## 6. Desktop GUI Application Specs (`mynkf-gui`)
-The GUI version is an immediate-mode utility built with `eframe`/`egui`:
-
-### 6.1 Multi-launch Prevention
-- **Behavior**: Limits execution to a single instance on Windows.
-- **Logic**: Attempts to acquire a system-wide Named Mutex `Global\MyNKF_GUI_SingleInstance_Mutex` via `CreateMutexW`. If it returns `GetLastError() == ERROR_ALREADY_EXISTS`, the second process terminates instantly (exit code 0).
-
-### 6.2 Borderless & Transparent Frame
-- **Behavior**: Completely hides default Windows frames (titlebar, resize borders, shadows).
-- **Logic**:
-  - Sets `decorations: false` and `transparent: true` in `eframe::NativeOptions` viewport options.
-  - Invokes Win32 DWM API `DwmSetWindowAttribute` with `DWMWA_NCRENDERING_POLICY` set to `DWMNCRP_DISABLED` on initialization to disable native shadows and thin boarders.
-
-### 6.3 Custom Header & Window Dragging
-- **Behavior**: Custom UI titlebar header equipped with close `[X]`, minimize `[-]`, and dragging handles.
-- **Logic**:
-  - When header dragging is detected (`response.dragged()`), delegates control to the OS via `ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag)` for smooth movement.
-  - Sends `ViewportCommand::Close` or `ViewportCommand::Minimized(true)` for buttons.
-
-### 6.4 Font Loading & Japanese Display
-- **Behavior**: Dynamically resolves system fonts to render Japanese characters without text corruption ("tofu" symbols).
-- **Logic**:
-  - Instead of compiling bloated font files via `include_bytes!`, walks `C:\Windows\Fonts\` at runtime to resolve `meiryo.ttc`, `msgothic.ttc`, or `msmincho.ttc` in order of priority. Dynamically registers the resolved file with `egui::FontDefinitions`.
-
-### 6.5 Batch Conversion Panel
-- **Files Drop**: Detects drag & drop files on window regions.
-- **File Picker**: Integrates native file dialogs via `rfd`.
-- **Parsing Grid**: Displays File Size, Original Encoding, and Newline Endings instantly.
-- **Batch Processing**: Normalizes and batch writes encoding/newlines in place, updating stats instantly.
-
-### 6.6 Direct Text Conversions
-- **Live Previews**: Provides real-time preview conversion panels.
-- **Accuracy**: Copies simulated outputs to the clipboard by replicating binary encoding and decoding steps, maintaining perfect byte compatibility.

@@ -11,13 +11,10 @@ This document outlines the guidelines for reporting bugs, proposing features, an
 
 Please adhere to the following principles when contributing to this project:
 
-1. **Zero External Dependencies (CLI)**:
-   - To keep the CLI version lightweight and compile-time fast, the CLI entrypoint and the core library (`src/lib.rs`) must remain strictly within the boundaries of the Rust standard library (`std`).
-   - Do not add non-optional third-party crates to the `[dependencies]` section in `Cargo.toml`.
-2. **Optional GUI Crate Dependencies and Win32 Isolation**:
-   - GUI dependency requirements must be configured as optional dependencies under the `gui` feature.
-   - Guard Windows-specific routines (Win32 FFI bindings) with conditional compile flags like `#[cfg(target_os = "windows")]` to avoid build breakages on other OS environments.
-3. **Synchronized Multi-lingual Documentation**:
+1. **Zero External Dependencies**:
+   - To keep the utility lightweight and compile-time fast, the CLI entrypoint and the core library (`src/lib.rs`) must remain strictly within the boundaries of the Rust standard library (`std`).
+   - Do not add third-party crates to the `[dependencies]` section in `Cargo.toml`.
+2. **Synchronized Multi-lingual Documentation**:
    - When introducing specification modifications or feature extensions, update documentations under both `docs/ja/` and `docs/en/` concurrently.
 
 ---
@@ -36,10 +33,6 @@ This project depends on the shared `common_lib` repository.
 2. **Verify CLI**:
    ```bash
    cargo run --bin mynkf -- --help
-   ```
-3. **Verify GUI**:
-   ```bash
-   cargo run --bin mynkf-gui
    ```
 
 ---

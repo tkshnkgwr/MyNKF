@@ -10,13 +10,11 @@ This document describes the security designs, supported releases, and vulnerabil
 
 `MyNKF` is designed to guarantee high safety and credibility based on the following principles:
 
-1. **Zero External Dependencies (CLI)**:
-   - Since the CLI utility compiles without linking any third-party crates, it is immune to supply-chain attacks and vulnerabilities originating from external dependencies.
-2. **Minimal Dependencies & Direct FFI (GUI)**:
-   - The GUI app strictly confines dependencies to the GUI framework (`eframe`/`egui`) and dialog wrapper (`rfd`). Windows API calls are declared directly via native FFI calls, avoiding heavy crates like `windows-sys` and minimizing potential attack surfaces.
-3. **Memory Safety**:
+1. **Zero External Dependencies (Pure Rust `std` Only)**:
+   - Since the utility compiles without linking any third-party crates, it is immune to supply-chain attacks and vulnerabilities originating from external dependencies.
+2. **Memory Safety**:
    - Leverages Rust's strong compile-time ownership checks and memory safety rules to eliminate memory safety issues (such as buffer overflows or dangling pointers).
-4. **Local Execution**:
+3. **Local Execution**:
    - The tool performs operations completely locally without establishing network connections or telemetry calls.
 
 ---
@@ -26,8 +24,8 @@ This document describes the security designs, supported releases, and vulnerabil
 Security updates are provided for the following release targets:
 
 | Version | Support Status |
-| :--- | :---: |
-| Latest Release (`v1.5.x` and above) | ✅ Supported |
+|:---|:---:|
+| Latest Release (`v1.6.x` and above) | ✅ Supported |
 | Legacy Releases | ❌ Unsupported |
 
 ---

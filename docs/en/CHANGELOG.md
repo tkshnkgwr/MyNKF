@@ -4,6 +4,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-08-12
+
+### Removed & Changed
+- **Complete Deprecation of egui (GUI logic) and Unification as a CLI Tool**:
+  - Removed GUI binary entrypoint (`src/bin/mynkf-gui.rs`).
+  - Removed `eframe`, `egui`, `rfd` dependencies and `gui` features from `Cargo.toml`.
+  - Removed GUI-related logic and documentation across the codebase, optimizing MyNKF as a pure std-only CLI utility.
+
+---
+
 ## [1.5.6] - 2026-07-21
 
 ### Changed

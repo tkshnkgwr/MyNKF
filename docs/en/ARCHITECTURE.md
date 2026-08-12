@@ -2,18 +2,18 @@
 
 # Architecture Design (ARCHITECTURE.md)
 
-This document describes the design philosophy, technical stack, directory structure design, and data flows between modules for `MyNKF` (both CLI and GUI versions) optimized for low-resource environments.
+This document describes the design philosophy, technical stack, directory structure design, and data flows between modules for `MyNKF` optimized for low-resource environments.
 
 ---
 
 ## 1. System Overview and Goals
 
-`MyNKF` is a lightweight utility that emulates the major features of the traditional Japanese character encoding converter `nkf` (Network Kanji Filter) using the Rust language.
+`MyNKF` is a lightweight CLI utility that emulates the major features of the traditional Japanese character encoding converter `nkf` (Network Kanji Filter) using the Rust language.
 
 ### Core Goals
 - **Minimal Resource Footprint**: Restricts CPU and memory utilization to a minimum to run efficiently in low-resource environments.
-- **High Portability**: Cuts down external library dependencies, packaging the application into single, standalone executables for easy deployment on Windows 10/11.
-- **Logic Consolidation**: Packages core encoding detection and conversion engines as a library (`mynkf`), shared by both CLI (`mynkf`) and GUI (`mynkf-gui`) editions.
+- **High Portability**: Cuts down external library dependencies, packaging the application into a single, standalone executable for easy deployment on Windows 10/11.
+- **Logic Consolidation**: Packages core encoding detection and conversion engines as a library (`mynkf`), ensuring maintainability and code reuse.
 
 ---
 
@@ -24,16 +24,8 @@ To minimize binary sizes and runtime overheads, we utilize a strictly selected t
 ### 2.1 Language and Edition
 - **Rust (Edition 2024, v1.85+)**: Utilizes Edition 2024 features (such as `let_chains`) to maintain secure and readable codebases.
 
-### 2.2 Dependencies and Cargo Features
-- **Cargo Features Separation (`[features]`)**:
-  - `default = ["cli", "gui"]`
-  - `cli = []`: Activates the CLI entry point. Zero external crate dependencies (Rust standard `std` only).
-  - `gui = ["dep:eframe", "dep:egui", "dep:rfd"]`: Activates the GUI entry point and required graphic/dialog crates.
-- **CLI Edition (`mynkf`)**: **Zero external dependencies (pure Rust `std` only)**. Implements custom JIS X 0208 mapping lookups, auto-detection heuristics, and shell expansions natively. Running `cargo build --no-default-features --features cli` skips all GUI dependencies, delivering ultra-lightweight and lightning-fast compilations.
-- **GUI Edition (`mynkf-gui`)**:
-  - `eframe` / `egui` (v0.35, optional): Immediate-mode GUI frameworks for layout rendering.
-  - `rfd` (v0.17, optional): Cross-platform file picker dialog.
-  - **Win32 API FFI bindings**: Instead of importing heavy libraries like `windows-sys`, it defines necessary system calls (`kernel32`, `user32`, `dwmapi`) directly via `extern "system"` to optimize compile times.
+### 2.2 Dependencies
+- **Zero External Dependencies (Pure Rust `std` Only)**: Implements custom JIS X 0208 mapping lookups, auto-detection heuristics, and shell expansions natively using only the Rust standard library. Zero third-party crate dependencies mean ultra-lightweight and lightning-fast compilations.
 - **Out-of-workspace Dependency**:
   - `common_lib` (Referenced via relative path `../common_lib`): Shared library for shared operations.
 
@@ -56,38 +48,25 @@ MyNKF/
 ├── .agents/
 │   └── AGENTS.md                    # Rules & guidelines for AI agents (Gem)
 ├── .github/workflows/
-│   ├── ci.yml                       # GitHub Actions CI for tests (skips on markdown-only edits)
+│   ├── ci.yml                       # GitHub Actions CI for tests
 │   └── release.yml                  # Auto-release CI creating Windows ZIPs on tags
 ├── docs/
 │   ├── ja/
-│   │   ├── ARCHITECTURE.md          # Architecture Design (Japanese)
-│   │   ├── DIAGRAM.md               # System Diagram (Japanese)
-│   │   ├── FOOTPRINTS.md            # Footprint measurements (Japanese)
-│   │   ├── INSTRUCTIONS.md          # AI Coding Instructions (Japanese)
-│   │   ├── PROJECT_TEMPLATE_GUIDE.md# Project initialization guide (Japanese)
-│   │   ├── SPEC.md                  # Detail specification (Japanese)
-│   │   ├── TESTING.md               # Testing guide (Japanese)
-│   │   ├── RELEASE.md               # Release guide (Japanese)
-│   │   ├── CONTRIBUTING.md          # Contribution guidelines (Japanese)
-│   │   ├── SECURITY.md              # Security policies (Japanese)
-│   │   ├── TODO.md                  # Roadmap task management (Japanese)
-│   │   └── CHANGELOG.md             # Real changelog logs (Japanese)
+│   │   └── ...                      # Japanese documentation set
 │   └── en/
-│       ├── ARCHITECTURE.md          # ARCHITECTURE (English)
-│       ├── DIAGRAM.md               # DIAGRAM (English)
-│       ├── FOOTPRINTS.md            # FOOTPRINTS (English)
-│       ├── INSTRUCTIONS.md          # INSTRUCTIONS (English)
-│       ├── PROJECT_TEMPLATE_GUIDE.md# PROJECT_TEMPLATE_GUIDE (English)
-│       ├── SPEC.md                  # SPEC (English)
-│       ├── TESTING.md               # TESTING (English)
-│       ├── RELEASE.md               # RELEASE (English)
-│       ├── CONTRIBUTING.md          # CONTRIBUTING (English)
-│       ├── SECURITY.md              # SECURITY (English)
-│       ├── TODO.md                  # TODO (English)
-│       └── CHANGELOG.md             # CHANGELOG (English)
+│       ├── ARCHITECTURE.md          # Architecture Design (English)
+│       ├── DIAGRAM.md               # System Diagram (English)
+│       ├── FOOTPRINTS.md            # Footprint measurements (English)
+│       ├── INSTRUCTIONS.md          # AI Coding Instructions (English)
+│       ├── PROJECT_TEMPLATE_GUIDE.md# Project initialization guide (English)
+│       ├── SPEC.md                  # Detail specification (English)
+│       ├── TESTING.md               # Testing guide (English)
+│       ├── RELEASE.md               # Release guide (English)
+│       ├── CONTRIBUTING.md          # Contribution guidelines (English)
+│       ├── SECURITY.md              # Security policies (English)
+│       ├── TODO.md                  # Roadmap task management (English)
+│       └── CHANGELOG.md             # Real changelog logs (English)
 ├── src/
-│   ├── bin/
-│   │   └── mynkf-gui.rs             # GUI app entry point & UI drawing
 │   ├── lib.rs                       # Core encoding library (mynkf)
 │   ├── main.rs                      # CLI entry point & filesystem I/O
 │   └── tests.rs                     # Unit tests module (mynkf::tests)
@@ -99,11 +78,9 @@ MyNKF/
 
 ### Design Intentions
 1. **Consolidated Logic (`src/lib.rs`)**:
-   Maintains core encoding heuristics, Unicode intermediate conversions, custom encoding tables, line endings normalizations, and wildcard expansions. This ensures uniform CLI/GUI behavior and eliminates double maintenance.
+   Maintains core encoding heuristics, Unicode intermediate conversions, custom encoding tables, line endings normalizations, and wildcard expansions.
 2. **Lean CLI (`src/main.rs`)**:
    Purely handles console args parsing, filesystem/stream I/O, and stdout formatting. Since it only links against `lib.rs` with zero external crate dependencies, the binary compiles instantly and remains extremely small (~250 KB).
-3. **Isolated GUI (`src/bin/mynkf-gui.rs`)**:
-   Confines heavy UI-related graphical libraries to a single binary. Native OS configurations (such as transparent overlays and mutex controls) are isolated using conditional compilation (`#[cfg(target_os = "windows")]`).
 
 ---
 
@@ -135,29 +112,7 @@ When CLI version (`mynkf`) starts, data flows through the following pipeline:
 [Output Transfer] (to stdout or file write)
 ```
 
-### 4.2 GUI Event and Interaction Loops
-
-The GUI edition (`mynkf-gui`) uses immediate-mode loops linking frame updates against Windows events.
-
-```
-[Start: Create Named Mutex] (win32::CreateMutexW)
-   │  * Aborts immediately (exit 0) if another process is active
-   ▼
-[Dynamic Font Loading] (Checks C:\Windows\Fonts for meiryo.ttc, etc.)
-   │  * Avoids tofu boxes on localized systems
-   ▼
-[Initial Draw Frame: Frame Shadow/Border Removal] (win32::DwmSetWindowAttribute)
-   │  * Deactivates standard system decorations and shadow buffers
-   ▼
-┌───────────────────┴───────────────────┐
-▼                                       ▼
-[Batch Files Convert Tab]               [Text Conversion Playground]
-- Resolves paths via D&D or picker      - Monitors text area buffers
-- Auto guesses file info via mynkf      - Simulates encoding/decoding live
-- Performs batch overwrite saves        - Copies simulated bytes to clipboard
-```
-
-### 4.3 Encoding Guess Heuristics
+### 4.2 Encoding Guess Heuristics
 Walks input buffers to evaluate grammar scores:
 1. **ASCII**: All bytes fall into `0x00`..=`0x7F`.
 2. **UTF-8**: Complies with UTF-8 byte syntax (proper lead and continuation bytes).

@@ -112,22 +112,7 @@ test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 
 ---
 
-## 5. Desktop GUI App (`mynkf-gui`) Manual Verification
-
-Manual validation checklist performed on Windows 11 client:
-
-| Test Item | Verification Step | Expected Result | Pass/Fail |
-| :--- | :--- | :--- | :--- |
-| **Mutex Checks** | Launch second `mynkf-gui.exe` instance. | Second process terminates instantly without GUI panels opening. | **Pass** |
-| **Borderless Overlay** | Observe GUI borders. | Standard titlebars, resize frames, and window shadows are fully hidden. | **Pass** |
-| **Header Dragging** | Drag titlebar region, close and minimize. | Custom titlebar moves smoothly, and buttons minimize/close correctly. | **Pass** |
-| **Japanese Font** | Check Japanese rendering. | Meiryo font loads dynamically, resolving tofu blocks. | **Pass** |
-| **Batch Conversions** | Drop multiple text files and execute. | Grid displays original status, and updates encodings after overwrite. | **Pass** |
-| **Direct Text Copy** | Type Japanese, copy to clipboard. | Simulates bytes encoding, preserving byte accuracies on paste. | **Pass** |
-
----
-
-## 6. Workspace Quality Audits
+## 5. Workspace Quality Audits
 
 Local checks executed to ensure code quality:
 

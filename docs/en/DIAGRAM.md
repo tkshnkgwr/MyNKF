@@ -100,49 +100,4 @@ graph TD
     C5 -->|Clipboard Copier / ZIP Download| User
 ```
 
----
 
-## 4. Desktop GUI App (`mynkf-gui`) Event Loops
-
-Application lifecycles, native Win32 direct FFI control, and user event streams for the `eframe`/`egui` binary.
-
-```mermaid
-graph TD
-    subgraph mynkf-gui [mynkf-gui Application]
-        Start[Launch] --> PreventDouble[1. Prevent Multi-launch: Named Mutex]
-        PreventDouble -->|Mutex exists| Exit[Abort process exit 0]
-        PreventDouble -->|New launch| Init[2. App Initialization: CreationContext]
-        
-        Init --> LoadFonts[3. Auto Scan & Load Japanese System Fonts]
-        LoadFonts --> StartLoop[4. Start eframe event loop]
-        
-        subgraph WindowControl [Frame Rendering & OS Control]
-            StartLoop --> FirstFrame{First frame?}
-            FirstFrame -->|YES| HideShadow[5. Win32 FFI: DwmSetWindowAttribute removes shadows/borders]
-            FirstFrame -->|NO| DrawWindow[6. egui: CentralPanel renders border/overlays]
-            HideShadow --> DrawWindow
-        end
-        
-        subgraph CustomHeader [Custom Titlebar Controls]
-            DrawWindow --> Header[7. Custom titlebar header]
-            Header -->|Dragging detected| WindowDrag[8. ViewportCommand::StartDrag delegates movement to OS]
-            Header -->|Close click| WindowClose[9. ViewportCommand::Close closes frame]
-            Header -->|Minimize click| WindowMin[10. ViewportCommand::Minimized minimizes window]
-        end
-        
-        subgraph TabPanel [Feature tabs & data flow]
-            DrawWindow --> TabSelect{Tab Selected}
-            TabSelect -->|Batch Files| TabFile[11. Batch Files Convert Panel]
-            TabSelect -->|Direct Text| TabText[12. Text Conversion Playground]
-            
-            TabFile -->|Drag & Drop| Dnd[13. Retrieve path from dropped_files]
-            TabFile -->|File Dialog| Picker[14. Retrieve path via rfd::FileDialog]
-            Dnd --> FileList[15. Append to queue & auto guess encoding/newline via mynkf]
-            Picker --> FileList
-            FileList -->|Convert button| LibConv[16. Convert encoding/newlines & write back in place]
-            
-            TabText -->|Key Input| Realtime[17. Track input text buffer]
-            Realtime -->|Copy button| Clip[18. Simulates encoding/decoding steps & copies output bytes to clipboard]
-        end
-    end
-```

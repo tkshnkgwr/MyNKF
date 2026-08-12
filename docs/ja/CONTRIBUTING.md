@@ -11,13 +11,10 @@
 
 開発を行う際は、以下の基本方針を遵守してください。
 
-1. **外部依存ゼロ (CLI版)**:
-   - CLI版のビルドを軽量に保つため、CLI用の処理およびライブラリコア（`src/lib.rs`）は常に Rust 標準ライブラリ (`std`) のみで機能を実装します。
-   - `Cargo.toml` の `[dependencies]` にオプショナルでない外部クレートを追加しないでください。
-2. **GUIのオプショナル依存とWin32制御の隔離**:
-   - GUI版（`mynkf-gui`）に必要な依存は、`gui` フィーチャーを介したオプショナルな依存関係（`optional = true`）として定義します。
-   - Windows 固有処理（Win32 APIを直接呼び出す FFI 等）には条件付きコンパイル `#[cfg(target_os = "windows")]` を使用し、他OSでのビルドエラーを防いでください。
-3. **多言語ドキュメントの同期**:
+1. **外部依存ゼロ**:
+   - CLI版のビルドを軽量に保つため、処理およびライブラリコア（`src/lib.rs`）は常に Rust 標準ライブラリ (`std`) のみで機能を実装します。
+   - `Cargo.toml` の `[dependencies]` に外部クレートを追加しないでください。
+2. **多言語ドキュメントの同期**:
    - 仕様変更や機能追加を行う際は、`docs/ja/` および `docs/en/` の両方の対応ドキュメントを更新してください。
 
 ---
@@ -33,13 +30,9 @@
    git clone https://github.com/tkshnkgwr/MyNKF.git
    cd MyNKF
    ```
-2. **動作確認 (CLI)**:
+2. **動作確認**:
    ```bash
    cargo run --bin mynkf -- --help
-   ```
-3. **動作確認 (GUI)**:
-   ```bash
-   cargo run --bin mynkf-gui
    ```
 
 ---

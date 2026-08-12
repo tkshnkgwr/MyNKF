@@ -2,18 +2,18 @@
 
 # アーキテクチャ設計書 (ARCHITECTURE.md)
 
-本ドキュメントは、低リソース環境向けに最適化された文字コード変換ユーティリティ `MyNKF`（CLI版およびGUI版）の設計思想、採用技術スタック、ディレクトリ構造の意図、およびモジュール間のデータフローについて記述するものです。
+本ドキュメントは、低リソース環境向けに最適化された文字コード変換ユーティリティ `MyNKF` の設計思想、採用技術スタック、ディレクトリ構造の意図、およびモジュール間のデータフローについて記述するものです。
 
 ---
 
 ## 1. システムの概要と目的
 
-`MyNKF` は、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の主要機能を、Rust言語を用いてエミュレートした軽量なユーティリティです。
+`MyNKF` は、伝統的な日本語文字コード変換ツール `nkf` (Network Kanji Filter) の主要機能を、Rust言語を用いてエミュレートした軽量な CLI ユーティリティです。
 
 ### 開発の目的
-- **極小のリソース消費**: CPU・メモリ使用量を極限まで抑え、低スペックなPC環境でも常駐・動作可能にすること。
+- **極小のリソース消費**: CPU・メモリ使用量を極限まで抑え、低スペックなPC環境でも高速に動作すること。
 - **高ポータビリティ**: 依存関係を徹底的に削減し、Windows 10/11 をはじめとする動作環境へ単一のバイナリのみで配備可能にすること。
-- **ロジックの共有化**: コアとなる文字コード判定・変換エンジンをライブラリ化し、CLI版（`mynkf`）とGUI版（`mynkf-gui`）で共有すること。
+- **コアロジックのライブラリ化**: 文字コード判定・変換エンジンをライブラリ (`mynkf`) として構造化し、高い保守性と再利用性を確保すること。
 
 ---
 
@@ -22,18 +22,10 @@
 本プロジェクトは、バイナリサイズおよびランタイムオーバーヘッドの最小化を狙い、厳選された技術スタックを採用しています。
 
 ### 2.1 言語とエディション
-- **Rust (Edition 2024, v1.85+)**: Edition 2024 の新機能（`let_chains` 等）を活用し、安全かつ簡潔な記述を行っています。
+- **Rust (Edition 2024, v1.85+)**: Edition 2024 の機能（`let_chains` 等）を活用し、安全かつ簡潔な記述を行っています。
 
-### 2.2 依存ライブラリ（Crates）と Cargo Features
-- **Cargo Features による分離 (`[features]`)**:
-  - `default = ["cli", "gui"]`
-  - `cli = []`: CLI版エントリーポイントを有効化。外部クレート依存ゼロ（純粋な Rust `std` のみ使用）。
-  - `gui = ["dep:eframe", "dep:egui", "dep:rfd"]`: GUI版エントリーポイントおよび描画・ダイアログ用クレートを有効化。
-- **CLI版 (`mynkf`)**: **外部依存なし（純粋な Rust `std` のみ使用）**。文字コード変換テーブル（JIS X 0208）や自動判定ロジック、グロブ展開などを標準ライブラリのみで自作しています。`cargo build --no-default-features --features cli` により、GUI依存クレートを一切ビルドせず超軽量・爆速でビルド可能。
-- **GUI版 (`mynkf-gui`)**:
-  - `eframe` / `egui` (v0.35, optional): UI描画のための immediate mode GUI フレームワーク。
-  - `rfd` (v0.17, optional): クロスプラットフォームなファイル選択ダイアログ。
-  - **Win32 API 直接 FFI 呼び出し**: `windows-sys` などの巨大クレートを導入せず、二重起動防止やウィンドウ枠・影の排除に必要な API（`kernel32`, `user32`, `dwmapi`）を `extern "system"` で自前定義しています。
+### 2.2 依存ライブラリ（Crates）
+- **外部依存ゼロ（純粋な Rust `std` のみ使用）**: 文字コード変換テーブル（JIS X 0208）や自動判定ロジック、グロブ展開などを標準ライブラリのみで自作しています。サードパーティ製クレートへの依存を一切排除し、超軽量・爆速でビルド可能です。
 - **ワークスペース外依存**:
   - `common_lib` (相対パス `../common_lib` 参照): 共通処理ライブラリ。
 
@@ -41,7 +33,7 @@
 `Cargo.toml` の `[profile.release]` にて以下の「黄金設定」を適用し、バイナリサイズを最小化しています。
 - `opt-level = 'z'` (サイズ優先の最適化)
 - `lto = true` (リンク時最適化)
-- `codegen-units = 1` (コンパイル単位 of 統合)
+- `codegen-units = 1` (コンパイル単位の統合)
 - `panic = 'abort'` (巻き戻し無効化)
 - `strip = true` (シンボル情報の削除)
 
@@ -56,7 +48,7 @@ MyNKF/
 ├── .agents/
 │   └── AGENTS.md                    # AIエージェント向けルール・ガイドライン
 ├── .github/workflows/
-│   ├── ci.yml                       # 自動テスト・ビルド検証CI (Markdownのみの修正時はスキップ)
+│   ├── ci.yml                       # 自動テスト・ビルド検証CI
 │   └── release.yml                  # タグプッシュ時のWindowsバイナリパッケージ・自動リリース
 ├── docs/
 │   ├── ja/
@@ -73,21 +65,8 @@ MyNKF/
 │   │   ├── TODO.md                  # 開発タスク管理
 │   │   └── CHANGELOG.md             # 変更履歴の実体
 │   └── en/
-│       ├── ARCHITECTURE.md          # ARCHITECTURE (English)
-│       ├── DIAGRAM.md               # DIAGRAM (English)
-│       ├── FOOTPRINTS.md            # FOOTPRINTS (English)
-│       ├── INSTRUCTIONS.md          # INSTRUCTIONS (English)
-│       ├── PROJECT_TEMPLATE_GUIDE.md# PROJECT_TEMPLATE_GUIDE (English)
-│       ├── SPEC.md                  # SPEC (English)
-│       ├── TESTING.md               # TESTING (English)
-│       ├── RELEASE.md               # RELEASE (English)
-│       ├── CONTRIBUTING.md          # CONTRIBUTING (English)
-│       ├── SECURITY.md              # SECURITY (English)
-│       ├── TODO.md                  # TODO (English)
-│       └── CHANGELOG.md             # CHANGELOG (English)
+│       └── ...                      # 英語版ドキュメント群
 ├── src/
-│   ├── bin/
-│   │   └── mynkf-gui.rs             # GUI版エントリーポイント & UI描画
 │   ├── lib.rs                       # コアロジックライブラリ (mynkf)
 │   ├── main.rs                      # CLI版エントリーポイント & I/O制御
 │   └── tests.rs                     # 単体テストモジュール (mynkf::tests)
@@ -99,11 +78,9 @@ MyNKF/
 
 ### 設計の意図
 1. **コアロジックの集約 (`src/lib.rs`)**:
-   文字コード判定、Unicode中間表現へのデコード、各種文字コードへのエンコード、改行コードの正規化、ワイルドカード展開など、全ての主要ロジックを `lib.rs` に集約しています。これにより、CLI版とGUI版の動作の同一性を保証し、二重メンテナンスを防止しています。
+   文字コード判定、Unicode中間表現へのデコード、各種文字コードへのエンコード、改行コードの正規化、ワイルドカード展開など、全ての主要ロジックを `lib.rs` に集約しています。
 2. **CLI版の軽量化保持 (`src/main.rs`)**:
    CLI版は `lib.rs` のみを呼び出し、依存クレートがないためビルドサイズが約200KB〜250KBと極めて小さく、コンパイルも瞬時に完了します。
-3. **GUI版の隔離と最適化 (`src/bin/mynkf-gui.rs`)**:
-   GUIに関わる `eframe` / `egui` 等の依存関係は GUI バイナリ単体に閉じ込めています。また、Windows固有のネイティブ処理（透過ウィンドウ設定や二重起動防止）は、条件付きコンパイル（`#[cfg(target_os = "windows")]`）によって他OSビルドへの影響を遮断しています。
 
 ---
 
@@ -135,30 +112,7 @@ CLI版（`mynkf`）が起動した際のデータ処理パイプラインは以�
 [出力] (stdout または上書き保存)
 ```
 
-### 4.2 GUI版のイベント・データフロー
-
-GUI版（`mynkf-gui`）は immediate mode GUI の特性に合わせ、毎フレームの更新と Win32 イベントを結びつけて動作します。
-
-```
-[起動時: Named Mutex 生成] (win32::CreateMutexW)
-   │  ※多重起動時は即座に終了 (exit 0)
-   ▼
-[フォントの動的ロード] (C:\Windows\Fonts から meiryo.ttc 等を走査)
-   │  ※日本語豆腐化を防止
-   ▼
-[初回描画フレーム: ウィンドウ枠・影削除] (win32::DwmSetWindowAttribute)
-   │  ※Windows標準の枠を無効化し透過
-   ▼
-┌───────────────────┴───────────────────┐
-▼                                       ▼
-[ファイル一括変換タブ]                  [テキスト直接変換タブ]
-- D&D または picker からパス取得        - テキスト入力領域を監視
-- mynkf::guess_encoding 等で状態表示    - mynkf を用いてリアルタイム変換
-- 一括変換ボタンで mynkf を呼び出し     - クリップボードに模擬デコードして
-  上書き保存                              転送
-```
-
-### 4.3 文字コード自動判定（Guess）アルゴリズム
+### 4.2 文字コード自動判定（Guess）アルゴリズム
 入力バイト列を走査し、各エンコーディングの文法規則および特徴量をスコアリングします。
 1. **ASCII**: 全バイトが `0x00`〜`0x7F` の範囲内にある。
 2. **UTF-8**: UTF-8のマルチバイトシーケンス文法（継続バイト `0x80..=0xBF` 等の構成）に矛盾しない。
