@@ -18,6 +18,7 @@
 | `cargo build --release` + 最適化設定適用後 (2026-06-29)                 | **約 170 KB** (v1.2.0以前 実測値: 169KB) | **約 140 KB**        | `[profile.release]` 全適用後の実測結果                               |
 | `cargo build --release` + ワイルドカード・サイズ表示機能追加後 (v1.4.0) | **約 215 KB** (実測値: 214KB)            | -                    | 簡易グロブ展開およびファイルサイズ整形機能を追加した影響による増加   |
 | `cargo build --release` + CLI一本化・egui完全廃止後 (v1.6.0)            | **約 203 KB**                            | -                    | GUI機能および外部依存（eframe/egui/rfd）を完全排除した純粋な std CLI |
+| `cargo build --release` + JIS完全テーブル・改行最適化適用後 (v1.6.1)     | **約 203 KB** (実測値: 207KB)            | -                    | JIS X 0208全6,953文字マッピング内包後も極小サイズ（約203KB）を維持   |
 
 ### バイナリサイズ削減のための推奨設定 (`Cargo.toml`)
 

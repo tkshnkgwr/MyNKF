@@ -21,8 +21,8 @@ This document records validation reports, test checklists, and execution logs to
 | Test Item                         | Command / Operations            | Expected Result                                                            | Pass/Fail |
 | :-------------------------------- | :------------------------------ | :------------------------------------------------------------------------- | :-------- |
 | **Help Details (`--help`)**       | `MyNKF --help` or `MyNKF -h`    | Formatted lists of CLI usage, parameters, and version flags print cleanly. | **Pass**  |
-| **Version Details (`--version`)** | `MyNKF --version` or `MyNKF -v` | Outputs `MyNKF v1.6.0` and terminates with exit code 0.                    | **Pass**  |
-| **Version Alias (`--versio`)**    | `MyNKF --versio`                | Outputs `MyNKF v1.6.0` and terminates with exit code 0.                    | **Pass**  |
+| **Version Details (`--version`)** | `MyNKF --version` or `MyNKF -v` | Outputs `MyNKF v1.6.1` and terminates with exit code 0.                    | **Pass**  |
+| **Version Alias (`--versio`)**    | `MyNKF --versio`                | Outputs `MyNKF v1.6.1` and terminates with exit code 0.                    | **Pass**  |
 
 ### 2.2 Encoding Conversion Accuracy
 

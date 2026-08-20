@@ -18,6 +18,7 @@ By implementing custom character tables and heuristics without linking heavy thi
 | `cargo build --release` + profile tuning (2026-06-29)             | **~170 KB** (v1.2.0: 169KB)    | **~140 KB**           | Measured results after applying full profile options                               |
 | `cargo build --release` + glob/size flags (v1.4.0)                | **~215 KB** (Measured: 214KB)  | -                     | Size increased due to custom wildcard expansion and formatting                     |
 | `cargo build --release` + CLI unification / egui removal (v1.6.0) | **~203 KB**                    | -                     | Pure std CLI after completely removing GUI functionality and external dependencies |
+| `cargo build --release` + full JIS table & newline tuning (v1.6.1) | **~203 KB** (Measured: 207KB)  | -                     | Maintains tiny binary size (~203KB) even with complete JIS X 0208 table (6,953 chars) |
 
 ### Recommended Settings for Size Optimization (`Cargo.toml`)
 
