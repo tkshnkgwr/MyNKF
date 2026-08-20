@@ -42,11 +42,15 @@ This project depends on a shared library `common_lib` located in the parent dire
 
 ```bash
 # Example directory structure:
+
 # workspace/
+
 # ├── MyNKF/      (this repository)
+
 # └── common_lib/  (dependency repository)
 
 # Run this in the parent directory of MyNKF
+
 git clone https://github.com/tkshnkgwr/common_lib.git
 ```
 
@@ -56,37 +60,46 @@ To compile and run this tool locally on Windows:
 
 ```bash
 # Navigate to the repository
+
 cd MyNKF
 
 # Run tests to verify logic integrity
+
 cargo test
 
 # Build stripped release version
+
 cargo build --release
 ```
 
 Once compilation completes, the executable will be available under `target/release/`:
+
 - `mynkf.exe` (CLI character converter)
 
 ### Usage Examples
 
 ```powershell
 # Display help information
+
 cargo run --bin mynkf -- --help
 
 # Guess file encoding (displays size too)
+
 cargo run --bin mynkf -- --guess --size input.txt
 
 # Convert input.txt to Shift-JIS and write to a file
+
 cargo run --bin mynkf -- -s input.txt > output_sjis.txt
 
 # Pipe support
+
 type input_utf8.txt | cargo run --bin mynkf -- -e > output_euc.txt
 ```
 
 ## 📚 Documentation
 
 Detailed documentation is available in the `docs/en/` directory:
+
 - [Specifications](docs/en/SPEC.md)
 - [Architecture Design](docs/en/ARCHITECTURE.md)
 - [System Diagram & Flows](docs/en/DIAGRAM.md)

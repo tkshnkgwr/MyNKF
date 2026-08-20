@@ -24,13 +24,16 @@
 本プロジェクトは、隣接するディレクトリにある `common_lib` に依存しています。
 
 1. **リポジトリのクローン**:
+
    ```bash
    # 親フォルダ上で並列にクローンします
    git clone https://github.com/tkshnkgwr/common_lib.git
    git clone https://github.com/tkshnkgwr/MyNKF.git
    cd MyNKF
    ```
+
 2. **動作確認**:
+
    ```bash
    cargo run --bin mynkf -- --help
    ```
@@ -40,6 +43,7 @@
 ## 3. コミットおよびプルリクエスト手順
 
 ### コミットメッセージの規約
+
 コミットメッセージには Conventional Commits 形式を使用してください：
 
 - `feat:` 新機能の追加
@@ -51,6 +55,7 @@
 - `chore:` ビルドスクリプトや設定の変更
 
 ### プルリクエスト作成前のチェックリスト
+
 プルリクエストを送信する前に、以下のコマンドを実行し全て合格することを確認してください：
 
 - [ ] `cargo test` （ユニットテスト合格）

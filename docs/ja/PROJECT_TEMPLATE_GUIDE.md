@@ -11,6 +11,7 @@
 ## 1. 開発エディタ設定
 
 ### 1.1 `.editorconfig`
+
 プロジェクト全体のコーディング規約（改行コード LF、文字コード UTF-8 BOMなし、インデント幅など）をエディタ間で統一します。
 
 **設定パス**: `.editorconfig` (プロジェクトルート)
@@ -36,6 +37,7 @@ indent_size = 4
 ```
 
 ### 1.2 `.vscode/settings.json`
+
 VS Code 利用者向けの設定を定義します。ファイルの保存時に `rustfmt` による自動フォーマットを有効化し、文字コードや改行コードを EditorConfig と整合させます。
 
 **設定パス**: `.vscode/settings.json`
@@ -67,6 +69,7 @@ VS Code 利用者向けの設定を定義します。ファイルの保存時に
 ## 2. GitHub Actions CI/CD ワークフロー
 
 ### 2.1 継続的インテグレーション (`ci.yml`)
+
 プルおよびプルリクエスト発生時に Windows 環境で自動でテストとビルドを実行し、コードの健全性を検証します。ビルド高速化のためにキャッシュアクションを導入しています。
 
 **設定パス**: `.github/workflows/ci.yml`
@@ -89,23 +92,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
     - name: Checkout repository
       uses: actions/checkout@v4
-    
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
-      
+
     - name: Rust cache
       uses: Swatinem/rust-cache@v2
-      
+
     - name: Run cargo test
       run: cargo test --verbose
-      
+
     - name: Run cargo build
       run: cargo build --release --verbose
 ```
 
 ### 2.2 継続的デプロイ・自動リリース (`release.yml`)
+
 リリースタグ（例: `v0.2.1`）が GitHub にプッシュされた際、Windows 向けに CLI 版および GUI 版バイナリをリリースビルドし、一つの zip アーカイブにまとめて GitHub Releases へ自動デプロイします。
 
 **設定パス**: `.github/workflows/release.yml`
@@ -116,6 +121,7 @@ name: Release
 on:
   push:
     tags:
+
       - 'v*'
 
 permissions:
@@ -127,6 +133,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -134,10 +141,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       # 1. CLI版のビルド
+
       - name: Build CLI release
         run: cargo build --release --verbose
 
       # 2. CLI版バイナリの退避
+
       - name: Package CLI binary
         shell: pwsh
         run: |
@@ -145,22 +154,26 @@ jobs:
           Copy-Item -Path target/release/<YOUR_APP_NAME>.exe -Destination target/dist/<YOUR_APP_NAME>.exe -Force
 
       # 3. GUI版のビルド (gui feature がある場合)
+
       - name: Build GUI release
         run: cargo build --release --features gui --verbose
 
       # 4. GUI版バイナリの退避とリネーム
+
       - name: Package GUI binary
         shell: pwsh
         run: |
           Copy-Item -Path target/release/<YOUR_APP_NAME>.exe -Destination target/dist/<YOUR_APP_NAME>-gui.exe -Force
 
       # 5. 両方のバイナリを含む zip アーカイブの作成
+
       - name: Archive production binaries
         shell: pwsh
         run: |
           Compress-Archive -Path target/dist/<YOUR_APP_NAME>.exe, target/dist/<YOUR_APP_NAME>-gui.exe -DestinationPath target/dist/<YOUR_APP_NAME>-windows-x64.zip -Force
 
       # 6. GitHub Release の作成とアップロード
+
       - name: Create GitHub Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
@@ -168,6 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
 *※注: テンプレート内の `<YOUR_APP_NAME>` は、作成するアプリケーション名（例: `bunka` など、`Cargo.toml` の `name` フィールドに指定した値）に置換して使用してください。*
 
 ---
@@ -175,6 +189,7 @@ jobs:
 ## 3. 依存ライブラリの自動アップデート設定
 
 ### 3.1 `dependabot.yml`
+
 GitHub Actions のアクションや Cargo（Rust）の外部ライブラリを週次で自動スキャンし、更新があった場合に自動でプルリクエストを生成します。
 
 **設定パス**: `.github/dependabot.yml`
@@ -183,12 +198,14 @@ GitHub Actions のアクションや Cargo（Rust）の外部ライブラリを�
 version: 2
 updates:
   # GitHub Actions のアップデート設定
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
 
   # Cargo (Rust) のアップデート設定
+
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
@@ -222,10 +239,13 @@ CLI / GUI 共通での起動制御（二重起動防止）や、最前面・透�
 
 ```toml
 [dependencies]
+
 # eframe (egui フレームワーク本体): GUI表示に使用
+
 eframe = { version = "0.35.0", optional = true }
 
 # windows (Windows APIの呼び出し): 名前付きMutexによる二重起動制御に使用
+
 windows = {
     version = "0.62.0",
     features = [
@@ -237,6 +257,7 @@ windows = {
 }
 
 # winapi (他のWin32制御に使用、必要に応じて)
+
 winapi = { version = "0.3.9", features = ["winuser", "windef"], optional = true }
 
 [features]

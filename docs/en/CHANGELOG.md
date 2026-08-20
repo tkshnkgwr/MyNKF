@@ -4,9 +4,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2026-08-20
+
+### Fixed
+
+- **Complete JIS X 0208 Mapping Table**:
+  - Upgraded the incomplete character table to a complete 94x94 JIS X 0208 mapping covering all 6,953 characters. Resolved character corruption issues (`??`) during UTF-8 ⇆ Shift_JIS ⇆ EUC-JP roundtrips.
+- **Raw Line Ending Conversion**:
+  - Introduced `convert_line_endings_raw` to perform byte-level line ending conversions without triggering unnecessary re-encoding when encoding flags (`-w`, `-s`, `-e`) are omitted.
+- **Enhanced Encoding Detection (`guess_encoding`)**:
+  - Implemented binary detection for control characters (e.g. `0x00`), reliably classifying binary inputs as `BINARY` (`Encoding::Unknown`).
+  - Improved UTF-8 validation via `str::from_utf8` and refined Shift_JIS vs EUC-JP scoring based on valid JIS 2-byte coordinate ranges.
+- **CLI Options & Output Alignment**:
+  - Added long option aliases (`--utf8`, `--sjis`, `--euc`, `--lf`, `--crlf`).
+  - Aligned `--guess` output formatting to `SPEC.md` standards (`[123 lines] [1.2 KB]`).
+- **Expanded Unit Tests**:
+  - Added roundtrip tests for Japanese text, line ending conversions, and binary detection, raising unit test count to 21.
+
+---
+
 ## [1.6.0] - 2026-08-12
 
 ### Removed & Changed
+
 - **Complete Deprecation of egui (GUI logic) and Unification as a CLI Tool**:
   - Removed GUI binary entrypoint (`src/bin/mynkf-gui.rs`).
   - Removed `eframe`, `egui`, `rfd` dependencies and `gui` features from `Cargo.toml`.
@@ -17,6 +37,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.6] - 2026-07-21
 
 ### Changed
+
 - **Refactoring & Module Separation for Code Size Constraint**:
   - Added a 1,000-line limit policy inside `.agents/AGENTS.md`.
   - Extracted unit tests (approx. 200 lines) from `src/lib.rs` to a dedicated `src/tests.rs` module, shrinking `src/lib.rs` line count from 986 to 786 lines to improve readability.
@@ -30,6 +51,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.5] - 2026-07-16
 
 ### Added
+
 - **System Architecture Design (`docs/ARCHITECTURE.md`)**:
   - Outlined system flows, tech stacks, directory intents, and Mermaid data pipelines.
 - **AI Coding Instructions (`docs/INSTRUCTIONS.md`)**:
@@ -38,6 +60,7 @@ All notable changes to this project will be documented in this file.
   - Organized milestones into Done, Todo, and Backlog grids.
 
 ### Changed
+
 - **Unified Document Naming Scheme**:
   - Modified markdown file names under `docs/` and root to use uppercase snake case.
   - Renamed `README.ja.md` to `README_JA.md`.
@@ -49,6 +72,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.4] - 2026-07-14
 
 ### Added
+
 - **Japanese Rustdoc Comments**:
   - Added Japanese Rustdoc documentation (`///` or `//!`) to all public APIs inside `src/lib.rs`.
   - Replaced English comments with Japanese descriptions inside `src/main.rs` and `src/bin/mynkf-gui.rs`.
@@ -60,6 +84,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.3] - 2026-07-13
 
 ### Fixed
+
 - **GitHub Actions CI/CD Configuration**:
   - Configured `paths-ignore` in `ci.yml` to skip test/build runners on markdown-only changes.
 - **AI Guideline updates (AGENTS.md)**:
@@ -70,6 +95,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.2] - 2026-07-08
 
 ### Fixed
+
 - **Stable GitHub Workflows & Preconditions**:
   - Reverted checkout actions version from `@v7` to stable `@v4` and release actions from `@v3` to `@v2`.
   - Added clone steps for adjacent `common_lib` dependency (`../common_lib`) before builds, using `${{ secrets.PAT || github.token }}` fallbacks for private repo tokens.
@@ -89,6 +115,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.1] - 2026-06-30
 
 ### Fixed
+
 - **Clippy Warnings for Rust 1.96 / Edition 2024**:
   - Simplified double `if let` blocks inside `add_file_paths` using Edition 2024 `&& let` (let_chains) formats.
   - Refactored redundant newline `match` blocks using `matches!` macros.
@@ -105,6 +132,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.0] - 2026-06-29
 
 ### Added
+
 - **GUI Edition (`mynkf-gui`)**:
   - Introduced borderless desktop GUI conversions built on `eframe`/`egui`.
   - Prevents multi-launch operations using Windows Named Mutex objects.
@@ -118,6 +146,7 @@ All notable changes to this project will be documented in this file.
   - Removed dependency on heavy `windows-sys` targets in GUI builds.
 
 ### Fixed
+
 - **Newline Normalization (Preserving Source Encoding)**:
   - Fixes default output conversion behaviors. If no encoding flags are set, MyNKF now normalizes breaks (LF/CRLF) while retaining the original file encoding (matching standard `nkf` rules).
 - **GUI Titlebar Operations**:
@@ -132,6 +161,7 @@ All notable changes to this project will be documented in this file.
 ## [1.4.0] - 2026-06-29
 
 ### Added
+
 - **`--size` option (File sizes)**:
   - Appends formatted sizes (e.g. `[1.2 KB]`) inside auto guess outputs, working on both text and `BINARY` targets.
 
@@ -140,6 +170,7 @@ All notable changes to this project will be documented in this file.
 ## [1.3.0] - 2026-06-29
 
 ### Added
+
 - **Native Wildcard Expansion**:
   - Expands `*` and `?` paths natively on Windows commandlines.
 - **Safety Queue Limit**:
@@ -150,6 +181,7 @@ All notable changes to this project will be documented in this file.
 ## [1.2.0] - 2026-06-29
 
 ### Added
+
 - **Newline Guess Outputs**:
   - Appends break formats (e.g., `UTF-8 (LF)`) on guess outcomes.
 - **`--line` Option**:
@@ -160,6 +192,7 @@ All notable changes to this project will be documented in this file.
 ## [1.1.1] - 2026-06-29
 
 ### Added
+
 - **Unit Tests**:
   - Created 11 test scenarios inside CLI modules.
 - **Workspace Standards**:
@@ -168,6 +201,7 @@ All notable changes to this project will be documented in this file.
   - Integrated CI, Release, and Dependabot automation files.
 
 ### Fixed
+
 - **Corrected Coordinate Mappings**:
   - Resolved offset bugs in EUC-JP to Shift_JIS coordinate math.
 - **Brand Alignments**:
@@ -182,6 +216,7 @@ All notable changes to this project will be documented in this file.
 ## [1.1.0] - 2026-06-29
 
 ### Added
+
 - **Help / Version Flags**:
   - Added `-h`, `--help`, `-v`, `--version`, and `--versio` behaviors.
 - **Drafted Documents**:
@@ -194,6 +229,7 @@ All notable changes to this project will be documented in this file.
 ## [1.0.0] - 2026-06-28
 
 ### Added
+
 - **Initial release of MyNKF**:
   - 100% Rust std implementation of Japanese encoding filters.
   - Supports UTF-8, Shift_JIS, and EUC-JP conversions.

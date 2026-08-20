@@ -44,11 +44,15 @@
 
 ```powershell
 # 想定される配置構成:
+
 # workspace/
+
 # ├── MyNKF/      (本リポジトリ)
+
 # └── common_lib/  (依存先ライブラリリポジトリ)
 
 # MyNKF の親ディレクトリ上で実行する場合:
+
 git clone https://github.com/tkshnkgwr/common_lib.git
 ```
 
@@ -58,37 +62,46 @@ Windows PC で本プログラムをビルド・使用するには以下の手順
 
 ```powershell
 # プロジェクトディレクトリに移動
+
 cd MyNKF
 
 # テストの実行 (デグレ検証)
+
 cargo test
 
 # リリースビルド
+
 cargo build --release
 ```
 
 ビルドが完了すると、`target/release/` ディレクトリ内に以下のバイナリが生成されます。
+
 - `mynkf.exe` (CLI版文字コードコンバータ)
 
 ### 実行例
 
 ```powershell
 # ヘルプ情報を表示する
+
 cargo run --bin mynkf -- --help
 
 # ファイルの文字コードを推測する (ファイルサイズも併記)
+
 cargo run --bin mynkf -- --guess --size input.txt
 
 # input.txt を Shift-JIS (CRLF) に変換してファイルへ書き出す
+
 cargo run --bin mynkf -- -s input.txt > output_sjis.txt
 
 # パイプライン連携 (標準入出力)
+
 type input_utf8.txt | cargo run --bin mynkf -- -e > output_euc.txt
 ```
 
 ## 📚 関連ドキュメント
 
 詳細なドキュメントは `docs/ja/` ディレクトリに用意されています：
+
 - [機能仕様書](docs/ja/SPEC.md)
 - [システムアーキテクチャ設計書](docs/ja/ARCHITECTURE.md)
 - [システム構成図・実行フロー](docs/ja/DIAGRAM.md)

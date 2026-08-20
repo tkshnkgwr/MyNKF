@@ -9,18 +9,20 @@ This document maps out `MyNKF`'s current milestones ("Done"), pending works ("In
 ## 1. Completed Milestones (Done)
 
 ### 1.1 Core Engine (`mynkf` - `src/lib.rs`)
-- [x] **Auto Encoding Guess**: Predicts ASCII, UTF-8, EUC-JP, Shift_JIS, and BINARY with high accuracy.
+
+- [x] **Auto Encoding Guess**: Predicts ASCII, UTF-8, EUC-JP, Shift_JIS, and BINARY with high accuracy (control char checks, strict UTF-8 validation, JIS coordinate scoring).
 - [x] **Newline Detection**: Identifies LF, CRLF, CR, MIXED, and NONE newline structures.
-- [x] **Character Conversion**: Performs UTF-8 ⇆ EUC-JP ⇆ Shift_JIS conversions using static JIS X 0208 maps.
-- [x] **Newline Normalization**: Automatically converts breaks and supports explicit forcing of LF / CRLF.
+- [x] **Character Conversion**: Performs UTF-8 ⇆ EUC-JP ⇆ Shift_JIS conversions using complete 94x94 JIS X 0208 maps (all 6,953 characters).
+- [x] **Newline Normalization**: Automatically converts breaks via raw byte conversion (`convert_line_endings_raw`) and supports explicit forcing of LF / CRLF.
 - [x] **Half-width Katakana Preservation**: Map Shift_JIS half-width Katakana to destination encodings without data loss.
 - [x] **Fallback Handling**: Replaces unmapped characters with `??` instead of failing.
 - [x] **Wildcard Expansion**: Expands Windows command-line path globs (`*` and `?`) natively with a 100-file safety limit.
-- [x] **Tests Refactoring**: Extracted unit test cases out of `src/lib.rs` into `src/tests.rs` to lower core line count (from 986 to 786 lines).
-- [x] **Automated Tests**: Validated logic using 17 core unit test cases.
+- [x] **Tests Refactoring**: Extracted unit test cases out of `src/lib.rs` into `src/tests.rs` keeping core line count strictly under 1,000 lines.
+- [x] **Automated Tests**: Validated logic using 21 core unit test cases.
 - [x] **Complete egui Removal & CLI Unification**: Removed unnecessary GUI logic and dependencies, optimizing MyNKF as a pure std CLI app.
 
 ### 1.2 CLI Utility (`mynkf` - `src/main.rs`)
+
 - [x] **CLI Flags**: Supports `-w`, `-s`, `-e`, `-g`, `--line`, `--size`, `-d`, `-c`, `-h`, `-v`, and `--versio` parameters.
 - [x] **Standard Streams (Pipes)**: Handles `stdin` buffer reads and pipes outputs to `stdout` when file paths are omitted.
 - [x] **Batch File Runs**: Iterates and processes multiple glob-expanded files sequentially.

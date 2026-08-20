@@ -24,13 +24,16 @@ Please adhere to the following principles when contributing to this project:
 This project depends on the shared `common_lib` repository.
 
 1. **Clone Repositories**:
+
    ```bash
    # Clone both repositories side-by-side in the same parent directory
    git clone https://github.com/tkshnkgwr/common_lib.git
    git clone https://github.com/tkshnkgwr/MyNKF.git
    cd MyNKF
    ```
+
 2. **Verify CLI**:
+
    ```bash
    cargo run --bin mynkf -- --help
    ```
@@ -40,6 +43,7 @@ This project depends on the shared `common_lib` repository.
 ## 3. Commit and PR Workflow
 
 ### Commit Messages
+
 Use the Conventional Commits format for your commit messages:
 
 - `feat:` Adds new features
@@ -51,6 +55,7 @@ Use the Conventional Commits format for your commit messages:
 - `chore:` Maintenance changes to build scripts or settings
 
 ### Pull Request Checklist
+
 Before opening a pull request, run the following commands locally and ensure everything passes with zero errors:
 
 - [ ] `cargo test` (Ensure all unit tests pass)

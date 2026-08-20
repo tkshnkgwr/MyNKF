@@ -11,6 +11,7 @@ Refer to this guide when initializing sibling projects in the future.
 ## 1. Development Editor Configurations
 
 ### 1.1 `.editorconfig`
+
 Aligns formatting behaviors across different text editors (forcing LF endings, BOM-less UTF-8, indentation sizes).
 
 **Path**: `.editorconfig` (Workspace Root)
@@ -36,6 +37,7 @@ indent_size = 4
 ```
 
 ### 1.2 `.vscode/settings.json`
+
 Specifies configurations for VS Code developers. Triggers formatters on file saves, aligning text rules against EditorConfig definitions.
 
 **Path**: `.vscode/settings.json`
@@ -67,6 +69,7 @@ Specifies configurations for VS Code developers. Triggers formatters on file sav
 ## 2. GitHub Actions CI/CD Workflows
 
 ### 2.1 Continuous Integration (`ci.yml`)
+
 Triggers build validation and runs unit tests automatically on Windows runners when commits are pushed or PRs are opened. Implements Swatinem cache to optimize execution.
 
 **Path**: `.github/workflows/ci.yml`
@@ -89,23 +92,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
     - name: Checkout repository
       uses: actions/checkout@v4
-    
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
-      
+
     - name: Rust cache
       uses: Swatinem/rust-cache@v2
-      
+
     - name: Run cargo test
       run: cargo test --verbose
-      
+
     - name: Run cargo build
       run: cargo build --release --verbose
 ```
 
 ### 2.2 Continuous Delivery / Automated Releases (`release.yml`)
+
 When release version tags (e.g. `v0.2.1`) are pushed to GitHub, this workflow automatically compiles release versions for CLI and GUI targets, archives them in a single ZIP, and deploys them to GitHub Releases.
 
 **Path**: `.github/workflows/release.yml`
@@ -116,6 +121,7 @@ name: Release
 on:
   push:
     tags:
+
       - 'v*'
 
 permissions:
@@ -127,6 +133,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -134,10 +141,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       # 1. Build CLI release binary
+
       - name: Build CLI release
         run: cargo build --release --verbose
 
       # 2. Extract CLI Binary
+
       - name: Package CLI binary
         shell: pwsh
         run: |
@@ -145,22 +154,26 @@ jobs:
           Copy-Item -Path target/release/<YOUR_APP_NAME>.exe -Destination target/dist/<YOUR_APP_NAME>.exe -Force
 
       # 3. Build GUI release binary (if gui feature is defined)
+
       - name: Build GUI release
         run: cargo build --release --features gui --verbose
 
       # 4. Extract GUI Binary and Rename
+
       - name: Package GUI binary
         shell: pwsh
         run: |
           Copy-Item -Path target/release/<YOUR_APP_NAME>.exe -Destination target/dist/<YOUR_APP_NAME>-gui.exe -Force
 
       # 5. Compress both into a single ZIP archive
+
       - name: Archive production binaries
         shell: pwsh
         run: |
           Compress-Archive -Path target/dist/<YOUR_APP_NAME>.exe, target/dist/<YOUR_APP_NAME>-gui.exe -DestinationPath target/dist/<YOUR_APP_NAME>-windows-x64.zip -Force
 
       # 6. Push ZIP Asset to GitHub Releases
+
       - name: Create GitHub Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
@@ -168,6 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
 *Note: Replace `<YOUR_APP_NAME>` with the actual name of your application defined in the `name` field of `Cargo.toml` (e.g. `bunka`).*
 
 ---
@@ -175,6 +189,7 @@ jobs:
 ## 3. Automated Dependency Updates
 
 ### 3.1 `dependabot.yml`
+
 Configures Dependabot to check weekly for updates to Cargo dependencies or active GitHub Action tasks, automatically opening pull requests when updates are resolved.
 
 **Path**: `.github/dependabot.yml`
@@ -183,12 +198,14 @@ Configures Dependabot to check weekly for updates to Cargo dependencies or activ
 version: 2
 updates:
   # GitHub Actions updates
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
 
   # Cargo (Rust) updates
+
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
@@ -222,10 +239,13 @@ Template dependency settings to prevent multi-launch threads and handle borderle
 
 ```toml
 [dependencies]
+
 # eframe (egui core graphics library)
+
 eframe = { version = "0.35.0", optional = true }
 
 # windows bindings (Win32 Mutex structures)
+
 windows = {
     version = "0.62.0",
     features = [
@@ -237,6 +257,7 @@ windows = {
 }
 
 # winapi bindings (additional system calls)
+
 winapi = { version = "0.3.9", features = ["winuser", "windef"], optional = true }
 
 [features]

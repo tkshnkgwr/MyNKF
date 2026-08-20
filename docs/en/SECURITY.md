@@ -23,10 +23,10 @@ This document describes the security designs, supported releases, and vulnerabil
 
 Security updates are provided for the following release targets:
 
-| Version | Support Status |
-|:---|:---:|
-| Latest Release (`v1.6.x` and above) | ✅ Supported |
-| Legacy Releases | ❌ Unsupported |
+| Version                             | Support Status |
+| :---------------------------------- | :------------: |
+| Latest Release (`v1.6.x` and above) | ✅ Supported   |
+| Legacy Releases                     | ❌ Unsupported |
 
 ---
 

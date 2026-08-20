@@ -10,13 +10,13 @@ This document defines the coding styles, error-handling conventions, design rule
 
 Follow standard Rust style guidelines.
 
-| Target | Convention | Example |
-| :--- | :--- | :--- |
-| **Variables, functions, methods, parameters, modules** | `snake_case` (lowercase with underscores) | `guess_encoding`, `to_enc`, `utf8_score` |
-| **Types, structures, enums, traits** | `PascalCase` (Capitalized words) | `Encoding`, `LineEnding`, `MyNkfGuiApp` |
-| **Constants, static variables** | `SCREAMING_SNAKE_CASE` (uppercase with underscores) | `MAX_GLOB_FILES`, `JIS_TO_UNICODE_BASE64` |
-| **Macros** | `snake_case!` | `todo!`, `matches!` |
-| **Documents, files** | `UPPER_SNAKE_CASE` (uppercase with underscores) | `ARCHITECTURE.md`, `INSTRUCTIONS.md`, `README.md` |
+| Target                                                 | Convention                                          | Example                                           |
+| :----------------------------------------------------- | :-------------------------------------------------- | :------------------------------------------------ |
+| **Variables, functions, methods, parameters, modules** | `snake_case` (lowercase with underscores)           | `guess_encoding`, `to_enc`, `utf8_score`          |
+| **Types, structures, enums, traits**                   | `PascalCase` (Capitalized words)                    | `Encoding`, `LineEnding`, `MyNkfGuiApp`           |
+| **Constants, static variables**                        | `SCREAMING_SNAKE_CASE` (uppercase with underscores) | `MAX_GLOB_FILES`, `JIS_TO_UNICODE_BASE64`         |
+| **Macros**                                             | `snake_case!`                                       | `todo!`, `matches!`                               |
+| **Documents, files**                                   | `UPPER_SNAKE_CASE` (uppercase with underscores)     | `ARCHITECTURE.md`, `INSTRUCTIONS.md`, `README.md` |
 
 - **Document Names**: Markdown document names in the workspace root and under the `docs/` folder must use uppercase snake case (e.g., `README.md`, `TESTING.md`).
 
@@ -40,6 +40,7 @@ To minimize binary size and memory foot prints, keep modules clean:
 
 - **`src/lib.rs` (Core Library)**:
   Aggregates pure functions dealing with buffer processing (heuristics detection, decoding/encoding tables, newline normalizations, wildcard expansions). Skips external crate dependencies entirely.
+
 - **`src/main.rs` (CLI Entrypoint)**:
   Handles CLI-specific I/O (arguments parsing, terminal streams reading, print layouts).
 
@@ -53,7 +54,9 @@ When proposing changes, AI agents (Gem) must comply with the following instructi
 - **Direct Copy-Paste Code Blocks**: Provide code snippets with exact filenames, target line ranges, and before/after contexts for smooth integration.
 - **Japanese Rustdoc Comments**:
   When modifying or creating public APIs, ensure Japanese Rustdoc comments (`///` or `//!`) are kept in sync with implementation details. Avoid doc rot.
+
 - **Auto-Documentation Rule**:
   Keep markdown documentations (e.g. `CHANGELOG.md`, `SPEC.md`) fully synchronized and update both `docs/en/` and `docs/ja/` copies simultaneously.
+
 - **1,000-Line Limit**:
   If a single source file exceeds **1,000 lines** (or is expected to), propose refactorings (such as extracting testing code to `src/tests.rs` or module splitting) to keep the code clean.
