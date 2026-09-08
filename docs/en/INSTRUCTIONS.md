@@ -57,6 +57,7 @@ When proposing changes, AI agents (Gem) must comply with the following instructi
 
 - **Auto-Documentation Rule**:
   Keep markdown documentations (e.g. `CHANGELOG.md`, `SPEC.md`) fully synchronized and update both `docs/en/` and `docs/ja/` copies simultaneously.
+  - **Markdown-only Changes**: When modifying only `.md` files, skip all Rust pre-verification commands (`cargo test`, `cargo clippy`, `cargo fmt`, `cargo doc`, etc.) to respond quickly.
 
 - **1,000-Line Limit**:
   If a single source file exceeds **1,000 lines** (or is expected to), propose refactorings (such as extracting testing code to `src/tests.rs` or module splitting) to keep the code clean.

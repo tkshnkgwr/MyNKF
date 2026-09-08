@@ -4,6 +4,32 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.6.2] - 2026-09-08
+
+### 追加・変更
+
+- **`-h` と `--help` の表示内容の分離と詳細ヘルプ機能の追加**:
+  - `-h`: コマンド構文、主要オプション一覧、および `--help` への誘導メッセージを含む簡潔なヘルプを表示。
+  - `--help`: オプション分類（文字コード変換、自動判定、改行制御、情報表示）、改行コード正規化や文字コード非指定時の動作に関する注意事項、実践的なコマンドライン使用例（文字コード判定・行数/サイズ併記・変換・パイプ連携・ワイルドカード）を含む詳細なマニュアルを表示。
+  - 不明なオプション指定時は簡潔なヘルプを表示するよう整理。
+- **RustDoc（ソース内ドキュメントコメント）の全面拡充**:
+  - `src/lib.rs` 内の全公開型（`Encoding`, `LineEnding`）、定数、関数に、設計思想、引数・戻り値・エラー・使用例（Doctest）を完備。
+  - `cargo test` にて計14件のドキュメントテスト（Doctest）が全件パスすることを確認。
+  - `src/main.rs` の private 関数群および `src/tests.rs` の全テストケースに解説コメントを付与。
+- **モジュール分割リファクタリングの実施（単一責任の原則）**:
+  - `src/lib.rs`（約1,000行）に集中していた責務を機能別に分割：
+    - `src/types.rs`: 文字コード・改行コード型定義 (`Encoding`, `LineEnding`)
+    - `src/newline.rs`: 改行検出・論理行数カウント (`detect_line_ending`, `count_lines`)
+    - `src/glob.rs`: ワイルドカード展開・サイズ整形 (`wildcard_match`, `expand_wildcard`, `format_size`)
+    - `src/table.rs`: JIS X 0208 マッピングテーブル & 区点コード変換 (`load_jis_table`, `sjis_to_eucjp`, `eucjp_to_sjis`)
+    - `src/guess.rs`: 文字コード自動判定エンジン (`guess_encoding`)
+    - `src/convert.rs`: Unicode中間変換・エンコード・直接改行置換 (`decode_to_unicode`, `encode_from_unicode`, `convert_line_endings_raw`)
+  - `src/lib.rs` をファサード（Facade）として再定義し、全サブモジュールを `pub use` で再エクスポートすることで、外部API後方互換性および既存Doctest・単体テストの互換性を100%維持。各ファイルの行数を300行以下にスリム化。
+- **各種設計ドキュメントの同期・体系化**:
+  - `SPEC.md`, `ARCHITECTURE.md`, `TESTING.md`, `TODO.md`, `README.md` の日英両版を完全同期更新。
+
+---
+
 ## [1.6.1] - 2026-08-20
 
 ### 修正

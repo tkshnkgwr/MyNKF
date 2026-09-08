@@ -1,9 +1,12 @@
-//! MyNKF CLI (標準ライブラリのみ使用版)
+//! # MyNKF CLI (標準ライブラリ限定版)
 //!
-//! コマンドラインからファイルの文字コード検出および変換を行うツールです。
-//! リリースビルドのバイナリサイズは約250KB（ストリップ後）と非常に軽量です。
-
-#![allow(dead_code, unused_variables, unused_mut)]
+//! コマンドラインからファイルの日本語文字コード（UTF-8, Shift_JIS, EUC-JP）検出および相互変換を行うツールです。
+//!
+//! ## 主な特徴
+//! - **超軽量バイナリ**: 外部依存関係を持たず、リリースビルド時のバイナリサイズは約200〜250KB。
+//! - **標準入出力（パイプ）対応**: 引数省略時は `stdin` から読み込み、結果を `stdout` にストリーム出力。
+//! - **ワイルドカード展開**: Windows環境でも `*` や `?` パターンを自前で安全に展開（最大100ファイル）。
+//! - **二段階ヘルプ**: `-h`（構文と要約）と `--help`（詳細マニュアル・使用例）に対応。
 
 use std::collections::HashMap;
 use std::env;
@@ -12,26 +15,97 @@ use std::io::{self, Read, Write};
 
 use mynkf::*;
 
+/// 簡潔なヘルプ情報（コマンド構文、主要オプション一覧、`--help` への案内）を標準出力に表示します。
 fn print_usage() {
     println!(
         "MyNKF [Rust Standard Library Edition] v{}",
         env!("CARGO_PKG_VERSION")
     );
     println!("Usage: MyNKF [options] [file...]");
+    println!();
     println!("Options:");
     println!("  -w, --utf8       Convert output to UTF-8 (LF)");
     println!("  -s, --sjis       Convert output to Shift-JIS (CRLF)");
     println!("  -e, --euc        Convert output to EUC-JP (LF)");
     println!("  -g, --guess      Guess the character encoding of the input");
-    println!("  --line           Show line count in guess mode (ignored for BINARY)");
-    println!("  --size           Show formatted file size in guess mode");
+    println!("      --line       Show line count in guess mode (ignored for BINARY)");
+    println!("      --size       Show formatted file size in guess mode");
     println!("  -d, --lf         Force Line Endings as LF");
     println!("  -c, --crlf       Force Line Endings as CRLF");
-    println!("  -h, --help       Show this help information");
+    println!("  -h               Show concise help");
+    println!("      --help       Show detailed help and examples");
     println!("  -v, --version    Show version information");
-    println!("  --versio         Show version information (alias)");
+    println!("      --versio     Show version information (alias)");
+    println!();
+    println!("For detailed help and usage examples, run 'MyNKF --help'.");
 }
 
+/// 詳細なヘルプ情報（概要、分類別オプション詳細、注意事項、実践的な使用例）を標準出力に表示します。
+fn print_detailed_help() {
+    println!(
+        "MyNKF [Rust Standard Library Edition] v{}",
+        env!("CARGO_PKG_VERSION")
+    );
+    println!("A lightweight Japanese character code and line ending converter.");
+    println!();
+    println!("Usage:");
+    println!("  MyNKF [options] [file...]");
+    println!();
+    println!("Options:");
+    println!("  Encoding Conversion:");
+    println!("    -w, --utf8           Convert text encoding to UTF-8 (normalized to LF)");
+    println!("    -s, --sjis           Convert text encoding to Shift-JIS (normalized to CRLF)");
+    println!("    -e, --euc            Convert text encoding to EUC-JP (normalized to LF)");
+    println!();
+    println!("  Character Code Guessing:");
+    println!("    -g, --guess          Detect character encoding and line ending");
+    println!("        --line           Show logical line count (text files only)");
+    println!("        --size           Show formatted file size (e.g. [1.2 KB])");
+    println!();
+    println!("  Line Ending Control:");
+    println!("    -d, --lf             Force line endings to LF");
+    println!("    -c, --crlf           Force line endings to CRLF");
+    println!();
+    println!("  Help & Version:");
+    println!("    -h                   Show concise help");
+    println!("        --help           Show this detailed help and examples");
+    println!("    -v, --version        Show version information");
+    println!("        --versio         Show version information (nkf compatibility alias)");
+    println!();
+    println!("Notes:");
+    println!("  - If no encoding conversion option (-w, -s, -e) is specified, the input");
+    println!("    encoding is preserved. You can use -d or -c alone to convert line endings only.");
+    println!("  - When no file is specified, input is read from standard input (stdin) and");
+    println!("    written to standard output (stdout).");
+    println!("  - Multiple files and wildcards (*, ?) are supported (up to 100 files).");
+    println!();
+    println!("Examples:");
+    println!("  # Guess encoding and line ending of a file:");
+    println!("    MyNKF -g input.txt");
+    println!();
+    println!("  # Guess encoding with line count and file size:");
+    println!("    MyNKF -g --line --size input.txt");
+    println!();
+    println!("  # Convert a file to UTF-8 (LF) and save to a new file:");
+    println!("    MyNKF -w input.txt > output_utf8.txt");
+    println!();
+    println!("  # Convert a file to Shift-JIS (CRLF):");
+    println!("    MyNKF -s input.txt > output_sjis.txt");
+    println!();
+    println!("  # Convert line endings to CRLF without changing encoding:");
+    println!("    MyNKF -c input.txt > output_crlf.txt");
+    println!();
+    println!("  # Process input from pipeline (stdin):");
+    println!("    type input.txt | MyNKF -w > output.txt");
+    println!();
+    println!("  # Batch guess encoding for multiple files using wildcards:");
+    println!("    MyNKF -g *.txt");
+}
+
+/// 自動判定（Guess）モードにおける出力文字列をフォーマットします。
+///
+/// ファイル名（ファイル指定時）、判定エンコーディング、改行コード、
+/// 論理行数（`--line` 指定時）、ファイルサイズ（`--size` 指定時）を適切に組み立てます。
 fn format_guess_output(
     prefix: Option<&str>,
     guessed: Encoding,
@@ -63,6 +137,10 @@ fn format_guess_output(
     }
 }
 
+/// 入力バイト列に対し、指定されたオプションに従って文字コード変換または改行コード変換を適用します。
+///
+/// 文字コード指定（`-w`, `-s`, `-e`）がない場合は再エンコードを行わず、
+/// バイト列レベルの高速改行置換（[`convert_line_endings_raw`]）を実行して元エンコーディングを維持します。
 fn process_buffer(
     buffer: &[u8],
     has_enc_option: bool,
@@ -96,6 +174,9 @@ fn process_buffer(
     }
 }
 
+/// CLI アプリケーションのエントリーポイント。
+///
+/// コマンドライン引数をパースし、指定されたファイル群または標準入力を処理して標準出力に結果を書き出します。
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
 
@@ -115,8 +196,11 @@ fn main() -> io::Result<()> {
             skip = false;
             continue; // 実行可能ファイル名はスキップ
         }
-        if arg == "--help" || arg == "-h" {
+        if arg == "-h" {
             print_usage();
+            return Ok(());
+        } else if arg == "--help" {
+            print_detailed_help();
             return Ok(());
         } else if arg == "--version" || arg == "--versio" || arg == "-v" {
             println!("MyNKF v{}", env!("CARGO_PKG_VERSION"));

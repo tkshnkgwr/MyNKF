@@ -72,7 +72,13 @@ MyNKF/
 │   └── ja/
 │       └── ...                      # Japanese documentation set
 ├── src/
-│   ├── lib.rs                       # Core logic library (mynkf)
+│   ├── lib.rs                       # Facade module (coordinates and re-exports submodules)
+│   ├── types.rs                     # Type definitions (Encoding, LineEnding)
+│   ├── newline.rs                   # Line ending detection & line counting (detect_line_ending, count_lines)
+│   ├── glob.rs                      # Wildcard glob expansion & formatting (wildcard_match, expand_wildcard, format_size)
+│   ├── table.rs                     # JIS X 0208 mapping table & coordinate math (load_jis_table, sjis_to_eucjp, etc.)
+│   ├── guess.rs                     # Character code auto-detection engine (guess_encoding)
+│   ├── convert.rs                   # Unicode decode, encode & raw newline replacement (decode_to_unicode, encode_from_unicode, etc.)
 │   ├── main.rs                      # CLI entrypoint & I/O control
 │   └── tests.rs                     # Unit test modules (mynkf::tests)
 ├── Cargo.toml                       # Dependencies and release profiles
@@ -83,11 +89,11 @@ MyNKF/
 
 ### Design Intent
 
-1. **Centralization of Core Logic (`src/lib.rs`)**:
-   Encoding auto-detection, Unicode intermediate decoding, multi-encoding generation, line ending normalizations, and wildcard resolutions are consolidated inside `lib.rs`.
+1. **Separation of Concerns & Facade Pattern (`src/lib.rs` and Submodules)**:
+   Following the Single Responsibility Principle, responsibilities are cleanly decoupled into encoding detection (`guess.rs`), JIS mapping (`table.rs`), codec logic (`convert.rs`), newline control (`newline.rs`), file globbing (`glob.rs`), and core types (`types.rs`). `lib.rs` acts as a facade module re-exporting all items via `pub use`, maintaining 100% public API backward compatibility while keeping each source file under 300 lines.
 
 2. **Ultra-Lightweight CLI Footprint (`src/main.rs`)**:
-   The CLI entrypoint relies solely on `lib.rs` and the Rust standard library, achieving zero external dependencies and a binary footprint under 250 KB.
+   The CLI entrypoint relies solely on `mynkf::*` and the Rust standard library, achieving zero external dependencies and a binary footprint under 250 KB.
 
 ---
 
@@ -99,24 +105,35 @@ When CLI version (`mynkf`) starts, data flows through the following pipeline:
 
 ```text
 [CLI Arguments Parse] (main.rs)
-   │
+   ├─► -h / --help / -v ──► [Displays help / version and exits immediately]
+   │    * -h: concise summary, --help: detailed manual & examples
    ▼
 [Wildcard Glob Expansion] (lib.rs::expand_wildcard)
    │  * Limits maximum files to 100
    ▼
 [Retrieve Input Buffer] (via files or stdin stream)
    │
-   ▼
-[Auto Encoding Guess] (lib.rs::guess_encoding)
-   │  * Evaluates byte constraints for ASCII/UTF-8/EUC-JP/Shift_JIS/BINARY
-   ▼
-[Decode to Unicode Intermediate] (lib.rs::decode_to_unicode)
-   │  * Builds Unicode chars (Vec<char>) via JIS map. Replaces unknown bytes with '?'
-   ▼
-[Newline Normalize & Encode] (lib.rs::encode_from_unicode)
-   │  * Normalizes breaks to LF/CRLF and encodes into output bytes
-   ▼
-[Output Transfer] (to stdout or file write)
+   ├─► [No Encoding Flags Specified (Newline conversion only)]
+   │      │
+   │      ▼ (lib.rs::convert_line_endings_raw)
+   │    Replaces newline bytes directly without re-encoding (zero corruption risk)
+   │      │
+   │      ▼
+   │    [Output Transfer] (to stdout)
+   │
+   └─► [Encoding Flags Specified or Guess Mode (--guess)]
+          │
+          ▼
+        [Auto Encoding Guess] (lib.rs::guess_encoding)
+          │  * Evaluates byte constraints for ASCII/UTF-8/EUC-JP/Shift_JIS/BINARY
+          ▼
+        [Decode to Unicode Intermediate] (lib.rs::decode_to_unicode)
+          │  * Builds Unicode chars (Vec<char>) via JIS map. Replaces unmapped chars with '??'
+          ▼
+        [Newline Normalize & Encode] (lib.rs::encode_from_unicode)
+          │  * Normalizes breaks to LF/CRLF and encodes into output bytes
+          ▼
+        [Output Transfer] (to stdout)
 ```
 
 ### 4.2 Encoding Guess Heuristics

@@ -44,7 +44,7 @@ This project depends on the shared `common_lib` repository.
 
 ### Commit Messages
 
-Use the Conventional Commits format for your commit messages:
+Use the Conventional Commits format for your commit messages. Write the commit description in **Japanese**, while using standard English prefixes (e.g., `feat: ○○機能の追加`, `fix: ○○の不具合を修正`):
 
 - `feat:` Adds new features
 - `fix:` Bug fixes

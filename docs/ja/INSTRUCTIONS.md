@@ -69,6 +69,7 @@ Rustの標準的なコードスタイルガイドラインに従います。
   2. `cargo clippy --all-targets -- -D warnings` （Clippy警告・エラーゼロ）
   3. `cargo fmt --check` （コードフォーマット完全準拠）
   4. `cargo doc --no-deps --document-private-items` （Rustdocビルドエラー・警告ゼロ）
+  ※**`.md` ファイルのみの修正時は、上記事前検証をすべて省略して迅速に対応します。**
 - **デスクトップアプリ（eframe/egui）開発ガイドライン**:
   - **ウィンドウの影と枠の消去**: 透過ウィンドウの枠や影を防ぐため `eframe::NativeOptions` で `decorated: false`, `transparent: true` を指定。
   - **ドラッグ操作**: タイトルバー非表示のためカスタムUIドラッグ時に `ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag)` を呼び出す。

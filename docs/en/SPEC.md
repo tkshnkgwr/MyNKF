@@ -45,8 +45,9 @@ MyNKF [options] [file...]
 |        | `--size`                | Appends formatted file size in guess mode (e.g., `[1.2 KB]`, `[100 B]`; printed for `BINARY` too). |
 | `-d`   | `--lf`                  | Forces newline characters to `LF`.                                                                 |
 | `-c`   | `--crlf`                | Forces newline characters to `CRLF`.                                                               |
-| `-h`   | `--help`                | Displays the help text and exits.                                                                  |
-| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.1`) and exits.                                                        |
+| `-h`   |                         | Displays concise help text and exits.                                                              |
+|        | `--help`                | Displays detailed help text with examples and exits.                                               |
+| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.2`) and exits.                                                        |
 
 > [!NOTE]
 > `--versio` (missing the trailing `n`) is an alias maintained for backward compatibility with the original `nkf` behavior (front-matching command parsers and historical typo compatibility).

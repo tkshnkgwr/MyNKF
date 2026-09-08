@@ -72,7 +72,13 @@ MyNKF/
 │   └── en/
 │       └── ...                      # 英語版ドキュメント群
 ├── src/
-│   ├── lib.rs                       # コアロジックライブラリ (mynkf)
+│   ├── lib.rs                       # ファサードモジュール（各サブモジュールの統括・再エクスポート）
+│   ├── types.rs                     # 文字コード・改行コード型定義 (Encoding, LineEnding)
+│   ├── newline.rs                   # 改行検出・行数カウント (detect_line_ending, count_lines)
+│   ├── glob.rs                      # ワイルドカード展開・サイズ整形 (wildcard_match, expand_wildcard, format_size)
+│   ├── table.rs                     # JIS X 0208 マッピングテーブル & 区点コード変換 (load_jis_table, sjis_to_eucjp, etc.)
+│   ├── guess.rs                     # 文字コード自動判定エンジン (guess_encoding)
+│   ├── convert.rs                   # Unicode中間変換・エンコード・直接改行置換 (decode_to_unicode, encode_from_unicode, etc.)
 │   ├── main.rs                      # CLI版エントリーポイント & I/O制御
 │   └── tests.rs                     # 単体テストモジュール (mynkf::tests)
 ├── Cargo.toml                       # 依存関係・最適化プロファイル定義
@@ -83,11 +89,11 @@ MyNKF/
 
 ### 設計の意図
 
-1. **コアロジックの集約 (`src/lib.rs`)**:
-   文字コード判定、Unicode中間表現へのデコード、各種文字コードへのエンコード、改行コードの正規化、ワイルドカード展開など、全ての主要ロジックを `lib.rs` に集約しています。
+1. **関心事の明確な分離とファサード設計 (`src/lib.rs` とサブモジュール群)**:
+   単一責任の原則に従い、文字コード判定 (`guess.rs`)、JISマッピングテーブル (`table.rs`)、変換処理 (`convert.rs`)、改行制御 (`newline.rs`)、ファイルユーティリティ (`glob.rs`)、型定義 (`types.rs`) の6つの責務に分割。`lib.rs` はこれらを再エクスポート（`pub use`）するファサード（窓口）として機能し、100%の後方互換性を保ちながら各ファイルの行数を300行以下にスリム化しています。
 
 2. **CLI版の軽量化保持 (`src/main.rs`)**:
-   CLI版は `lib.rs` のみを呼び出し、依存クレートがないためビルドサイズが約200KB〜250KBと極めて小さく、コンパイルも瞬時に完了します。
+   CLI版は `mynkf::*` を呼び出し、依存クレートがないためビルドサイズが約200KB〜250KBと極めて小さく、コンパイルも瞬時に完了します。
 
 ---
 
@@ -99,24 +105,35 @@ CLI版（`mynkf`）が起動した際のデータ処理パイプラインは以�
 
 ```text
 [引数解析] (main.rs)
-   │
+   ├─► -h / --help / -v ──► [ヘルプ・バージョン表示して即座に正常終了]
+   │    ※-h: 簡潔ヘルプ, --help: 詳細マニュアル・使用例
    ▼
 [ワイルドカード展開] (lib.rs::expand_wildcard)
    │  ※最大100ファイル制限を適用
    ▼
 [入力バッファ取得] (ファイルまたは標準入力)
    │
-   ▼
-[文字コード自動判定] (lib.rs::guess_encoding)
-   │  ※ASCII/UTF-8/EUC-JP/Shift_JIS/BINARY の特徴量を走査
-   ▼
-[中間表現デコード] (lib.rs::decode_to_unicode)
-   │  ※JIS-Unicodeテーブルを用いて Vec<char> に展開。外字は '?' に置換
-   ▼
-[改行コード正規化 & エンコード] (lib.rs::encode_from_unicode)
-   │  ※指定された改行コード(LF/CRLF)に変換し、目的のエンコーディングバイト列に再変換
-   ▼
-[出力] (stdout または上書き保存)
+   ├─► [文字コード指定なしの場合 (改行変換のみ)]
+   │      │
+   │      ▼ (lib.rs::convert_line_endings_raw)
+   │    バイト列を直接走査して改行コードのみ置換（文字コード維持・データ破壊ゼロ）
+   │      │
+   │      ▼
+   │    [出力] (stdout)
+   │
+   └─► [文字コード変換指定あり、または自動判定モード (--guess)]
+          │
+          ▼
+        [文字コード自動判定] (lib.rs::guess_encoding)
+          │  ※ASCII/UTF-8/EUC-JP/Shift_JIS/BINARY の特徴量を走査
+          ▼
+        [中間表現デコード] (lib.rs::decode_to_unicode)
+          │  ※JIS-Unicodeテーブルを用いて Vec<char> に展開。外字は '??' にフォールバック
+          ▼
+        [改行コード正規化 & エンコード] (lib.rs::encode_from_unicode)
+          │  ※指定された改行コード(LF/CRLF)に変換し、目的のエンコーディングバイト列に再変換
+          ▼
+        [出力] (stdout)
 ```
 
 ### 4.2 文字コード自動判定（Guess）アルゴリズム

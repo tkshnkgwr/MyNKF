@@ -17,15 +17,18 @@ This document maps out `MyNKF`'s current milestones ("Done"), pending works ("In
 - [x] **Half-width Katakana Preservation**: Map Shift_JIS half-width Katakana to destination encodings without data loss.
 - [x] **Fallback Handling**: Replaces unmapped characters with `??` instead of failing.
 - [x] **Wildcard Expansion**: Expands Windows command-line path globs (`*` and `?`) natively with a 100-file safety limit.
-- [x] **Tests Refactoring**: Extracted unit test cases out of `src/lib.rs` into `src/tests.rs` keeping core line count strictly under 1,000 lines.
+- [x] **Tests Refactoring**: Extracted unit test cases out of `src/lib.rs` into `src/tests.rs`.
+- [x] **Domain Modular Refactoring**: Decomposed monolithic `src/lib.rs` (~1,000 lines) into cohesive domain submodules (`types`, `newline`, `glob`, `table`, `guess`, `convert`) with a re-export facade in `src/lib.rs`, reducing every file to under 310 lines.
 - [x] **Automated Tests**: Validated logic using 21 core unit test cases.
 - [x] **Complete egui Removal & CLI Unification**: Removed unnecessary GUI logic and dependencies, optimizing MyNKF as a pure std CLI app.
 
 ### 1.2 CLI Utility (`mynkf` - `src/main.rs`)
 
-- [x] **CLI Flags**: Supports `-w`, `-s`, `-e`, `-g`, `--line`, `--size`, `-d`, `-c`, `-h`, `-v`, and `--versio` parameters.
+- [x] **CLI Flags**: Supports `-w`, `-s`, `-e`, `-g`, `--line`, `--size`, `-d`, `-c`, `-h`, `--help`, `-v`, and `--versio` parameters.
+- [x] **Two-Tier Help**: Separated output between concise help (`-h`) and comprehensive manual with examples (`--help`).
 - [x] **Standard Streams (Pipes)**: Handles `stdin` buffer reads and pipes outputs to `stdout` when file paths are omitted.
 - [x] **Batch File Runs**: Iterates and processes multiple glob-expanded files sequentially.
+- [x] **RustDoc & Documentation Polish**: Comprehensive doc comments with working doctests (14 doctests passing) across all types and functions, with full synchronization of documentation.
 
 ---
 

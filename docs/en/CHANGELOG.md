@@ -4,6 +4,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.2] - 2026-09-08
+
+### Added / Changed
+
+- **Separated `-h` and `--help` CLI Output with Comprehensive Help**:
+  - `-h`: Displays concise syntax, essential options list, and a prompt to run `--help` for details.
+  - `--help`: Displays full command documentation, categorized options (encoding, guessing, line ending, information), operational notes (line ending preservation, stdin/stdout, wildcard limits), and practical examples.
+  - Formatted invalid option error output to show concise usage.
+- **Comprehensive RustDoc Implementation**:
+  - Added rich module-level and item-level doc comments across all public types (`Encoding`, `LineEnding`), constants, and functions in `src/lib.rs`.
+  - Added working doc tests (`cargo test` verified all 14 doctests pass).
+  - Documented private helpers in `src/main.rs` and unit test intentions in `src/tests.rs`.
+- **Domain Modular Refactoring (Single Responsibility Principle)**:
+  - Decomposed the monolithic `src/lib.rs` (~1,000 lines) into dedicated domain submodules:
+    - `src/types.rs`: Encoding and newline type definitions (`Encoding`, `LineEnding`)
+    - `src/newline.rs`: Newline detection and logical line counting (`detect_line_ending`, `count_lines`)
+    - `src/glob.rs`: Wildcard expansion and size formatting (`wildcard_match`, `expand_wildcard`, `format_size`)
+    - `src/table.rs`: JIS X 0208 mapping tables and kuten coordinate conversion (`load_jis_table`, `sjis_to_eucjp`, `eucjp_to_sjis`)
+    - `src/guess.rs`: Automatic character encoding detection engine (`guess_encoding`)
+    - `src/convert.rs`: Unicode intermediate decoding, encoding, and direct newline replacement (`decode_to_unicode`, `encode_from_unicode`, `convert_line_endings_raw`)
+  - Redefined `src/lib.rs` as a clean facade that re-exports all submodules via `pub use`, maintaining 100% public API, unit test, and doctest backward compatibility. Each source file is now under 310 lines.
+- **Documentation Synchronization**:
+  - Synchronized and updated both Japanese and English documentation sets (`SPEC.md`, `ARCHITECTURE.md`, `TESTING.md`, `TODO.md`, `README.md`).
+
+---
+
 ## [1.6.1] - 2026-08-20
 
 ### Fixed

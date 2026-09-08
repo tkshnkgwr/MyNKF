@@ -24,7 +24,8 @@ The CLI version (`mynkf`) has zero external dependency vulnerabilities and maint
   - When `--line` is specified, it also displays the logical line count of the text file (e.g., `UTF-8 (LF) [100 lines]`; ignored for `BINARY`).
   - When `--size` is specified, it displays the formatted file size (e.g., `UTF-8 (LF) [1.2 KB]`; printed for `BINARY` files too). You can combine both options.
 - **System Options**:
-  - `-h`, `--help` displays a comprehensive CLI manual.
+  - `-h` displays a concise CLI manual.
+  - `--help` displays a comprehensive CLI manual with detailed descriptions and usage examples.
   - `-v`, `--version` or `--versio` (maintained for backward compatibility with `nkf`) displays the exact utility version.
 - **Newline Normalization**:
   - Auto-converts to `CRLF` when outputting to `Shift-JIS`, and to `LF` for `EUC-JP` or `UTF-8`.
