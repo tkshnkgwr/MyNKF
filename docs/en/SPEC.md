@@ -47,7 +47,7 @@ MyNKF [options] [file...]
 | `-c`   | `--crlf`                | Forces newline characters to `CRLF`.                                                               |
 | `-h`   |                         | Displays concise help text and exits.                                                              |
 |        | `--help`                | Displays detailed help text with examples and exits.                                               |
-| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.3`), copyright, and license, then exits.                              |
+| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.4`), copyright, and license, then exits.                              |
 
 > [!NOTE]
 > `--versio` (missing the trailing `n`) is an alias maintained for backward compatibility with the original `nkf` behavior (front-matching command parsers and historical typo compatibility).

@@ -204,7 +204,7 @@ fn main() -> io::Result<()> {
             return Ok(());
         } else if arg == "--version" || arg == "--versio" || arg == "-v" {
             println!(
-                "MyNKF v{}\nCopyright (c) 2026 tkshnkgwr\nLicense: MIT",
+                "MyNKF v{}\nCopyright (c) 2026 tkshnkgwr\nLicense: GPL-3.0-or-later",
                 env!("CARGO_PKG_VERSION")
             );
             return Ok(());
