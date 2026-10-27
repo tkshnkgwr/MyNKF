@@ -70,8 +70,3 @@ Rustの標準的なコードスタイルガイドラインに従います。
   3. `cargo fmt --check` （コードフォーマット完全準拠）
   4. `cargo doc --no-deps --document-private-items` （Rustdocビルドエラー・警告ゼロ）
   ※**`.md` ファイルのみの修正時は、上記事前検証をすべて省略して迅速に対応します。**
-- **デスクトップアプリ（eframe/egui）開発ガイドライン**:
-  - **ウィンドウの影と枠の消去**: 透過ウィンドウの枠や影を防ぐため `eframe::NativeOptions` で `decorated: false`, `transparent: true` を指定。
-  - **ドラッグ操作**: タイトルバー非表示のためカスタムUIドラッグ時に `ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag)` を呼び出す。
-  - **二重起動の防止**: `fn main()` 冒頭で Named Mutex による多重起動防止処理を実行。
-  - **リリースサイズ最適化**: `Cargo.toml` の `[profile.release]` に `opt-level = 'z'`, `lto = true`, `strip = true` などを適用。

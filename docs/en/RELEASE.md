@@ -50,7 +50,7 @@ Ensure the codebase and related documentations satisfy the latest quality guidel
 ## 3. Build and Tagging
 
 1. **Test Compile Production Releases**:
-   Compile local release bins to verify both CLI and GUI builds:
+   Compile local release binary to verify the CLI build:
 
    ```bash
    cargo build --release

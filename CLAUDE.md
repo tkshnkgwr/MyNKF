@@ -9,5 +9,5 @@ When working in this workspace, you MUST load and strictly adhere to the followi
 
 👉 **[Global Rules (RULES.md)](./RULES.md)**
 
-- Apply the rules specified in `RULES.md` ("No auto-commit/push", "Vertical alignment of Markdown tables", "Address the user as 'ボス' in Japanese") without exception.
+- Apply the rules specified in `RULES.md` ("No auto-commit/push", "Vertical alignment of Markdown tables", "Address the user as 'ボス' in Japanese", "Local absolute path environment variables (%USERPROFILE%)", "High-speed CLI tools (rg/fd/jq)") without exception.
 - Perform a self-check against the above rules before every tool execution and file write.

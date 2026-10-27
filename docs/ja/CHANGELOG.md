@@ -4,6 +4,25 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.6.3] - 2026-10-27
+
+### 追加・変更
+
+- **バージョン出力情報の拡充とライセンス表記の整備**:
+  - `--version` / `-v` / `--versio` 実行時に、バージョン番号に加えて著作権表記（`Copyright (c) 2026 tkshnkgwr`）およびライセンス情報（`License: MIT`）を表示するよう拡張。
+  - プロジェクトルートに `LICENSE`（MIT License）を正式配置し、`LICENSE.txt` および `README.md` / `README_JA.md` の著作権名義を統一。
+- **Obsidian Vault 一時メモ保存スキルの追加**:
+  - `.agents/skills/vault-memo/SKILL.md` を追加。ボスからの指示に基づき、対話中の技術知見や設計ログを Obsidian Vault の `01.FleetingNote` へ手厚い情報密度の Markdown として自動保存する機能を整備。
+- **各種設計ドキュメント・AI指示書の最新化と同期**:
+  - `docs/ja/INSTRUCTIONS.md` に残存していた旧GUI（egui）開発ガイドラインを削除し、現行の純粋な CLI ツール構成と整合。
+  - `docs/ja/RELEASE.md` および `docs/en/RELEASE.md` のビルド検証手順を CLI 単体バイナリ向けに最新化。
+  - `SPEC.md` および `TESTING.md` の `--version` 仕様・検証項目を最新出力フォーマットに同期。
+  - `RULES.md` および `CLAUDE.md` に高速CLIツール利用原則・環境変数化原則を追記し、Markdownテーブルの垂直整列を再徹底。
+- **共有ライブラリ依存の同期**:
+  - 隣接する共有ライブラリ `common_lib` の v0.3.0 アップデートに伴い、`Cargo.lock` の依存解決を同期。
+
+---
+
 ## [1.6.2] - 2026-09-08
 
 ### 追加・変更

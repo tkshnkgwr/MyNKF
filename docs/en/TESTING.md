@@ -22,8 +22,8 @@ This document records validation reports, test checklists, and execution logs to
 | :-------------------------------- | :------------------------------ | :------------------------------------------------------------------------- | :-------- |
 | **Concise Help (`-h`)**           | `MyNKF -h`                      | Prints concise usage and option summary with a pointer to `--help`.        | **Pass**  |
 | **Detailed Help (`--help`)**      | `MyNKF --help`                  | Prints detailed options, notes, and comprehensive examples.                | **Pass**  |
-| **Version Details (`--version`)** | `MyNKF --version` or `MyNKF -v` | Outputs `MyNKF v1.6.2` and terminates with exit code 0.                    | **Pass**  |
-| **Version Alias (`--versio`)**    | `MyNKF --versio`                | Outputs `MyNKF v1.6.2` and terminates with exit code 0.                    | **Pass**  |
+| **Version Details (`--version`)** | `MyNKF --version` or `MyNKF -v` | Outputs version (v1.6.3), copyright, and license, then terminates cleanly. | **Pass**  |
+| **Version Alias (`--versio`)**    | `MyNKF --versio`                | Outputs version (v1.6.3), copyright, and license, then terminates cleanly. | **Pass**  |
 
 ### 2.2 Encoding Conversion Accuracy
 

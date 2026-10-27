@@ -4,6 +4,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.3] - 2026-10-27
+
+### Added / Changed
+
+- **Enhanced Version Output and Formalized Licensing**:
+  - `--version` / `-v` / `--versio` commands now display copyright notice (`Copyright (c) 2026 tkshnkgwr`) and license info (`License: MIT`) alongside the version string.
+  - Added formal `LICENSE` file (MIT License) at repository root and aligned copyright holder across `LICENSE.txt`, `README.md`, and `README_JA.md`.
+- **Obsidian Vault Fleeting Note Skill Integration**:
+  - Added `.agents/skills/vault-memo/SKILL.md` to automatically export discussions, architecture decisions, and code insights into Obsidian Vault `01.FleetingNote`.
+- **Documentation and AI Guidelines Synchronization**:
+  - Removed outdated egui/GUI development guidelines from `docs/ja/INSTRUCTIONS.md` to match the pure std CLI architecture.
+  - Updated release build instructions in `docs/ja/RELEASE.md` and `docs/en/RELEASE.md` to reflect CLI-only binary verification.
+  - Aligned `--version` format specifications and test expectations in `SPEC.md` and `TESTING.md`.
+  - Updated workspace rules in `RULES.md` and `CLAUDE.md` to enforce high-speed CLI tool usage and environment variable standards with strictly aligned tables.
+- **Shared Library Dependency Synchronization**:
+  - Synchronized `Cargo.lock` with adjacent `common_lib` v0.3.0 updates.
+
+---
+
 ## [1.6.2] - 2026-09-08
 
 ### Added / Changed

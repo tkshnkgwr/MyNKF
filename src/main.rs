@@ -203,7 +203,10 @@ fn main() -> io::Result<()> {
             print_detailed_help();
             return Ok(());
         } else if arg == "--version" || arg == "--versio" || arg == "-v" {
-            println!("MyNKF v{}", env!("CARGO_PKG_VERSION"));
+            println!(
+                "MyNKF v{}\nCopyright (c) 2026 tkshnkgwr\nLicense: MIT",
+                env!("CARGO_PKG_VERSION")
+            );
             return Ok(());
         } else if arg == "-w" || arg == "--utf8" {
             to_enc = Encoding::Utf8;
