@@ -21,13 +21,11 @@ Please adhere to the following principles when contributing to this project:
 
 ## 2. Environment Setup
 
-This project depends on the shared `common_lib` repository.
+This project has zero external dependencies and can be cloned and built standalone.
 
-1. **Clone Repositories**:
+1. **Clone Repository**:
 
    ```bash
-   # Clone both repositories side-by-side in the same parent directory
-   git clone https://github.com/tkshnkgwr/common_lib.git
    git clone https://github.com/tkshnkgwr/MyNKF.git
    cd MyNKF
    ```

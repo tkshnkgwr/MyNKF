@@ -92,6 +92,12 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
         Some(p) => p,
         None => {
             files.push(arg.to_string());
+            if files.len() > MAX_GLOB_FILES {
+                return Err(format!(
+                    "Maximum limit of {} files exceeded.",
+                    MAX_GLOB_FILES
+                ));
+            }
             return Ok(());
         }
     };
@@ -142,6 +148,12 @@ pub fn expand_wildcard(arg: &str, files: &mut Vec<String>) -> Result<(), String>
 
     if !matched_any {
         files.push(arg.to_string());
+        if files.len() > MAX_GLOB_FILES {
+            return Err(format!(
+                "Maximum limit of {} files exceeded.",
+                MAX_GLOB_FILES
+            ));
+        }
     }
 
     Ok(())

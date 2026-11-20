@@ -19,25 +19,24 @@ This document maps out `MyNKF`'s current milestones ("Done"), pending works ("In
 - [x] **Wildcard Expansion**: Expands Windows command-line path globs (`*` and `?`) natively with a 100-file safety limit.
 - [x] **Tests Refactoring**: Extracted unit test cases out of `src/lib.rs` into `src/tests.rs`.
 - [x] **Domain Modular Refactoring**: Decomposed monolithic `src/lib.rs` (~1,000 lines) into cohesive domain submodules (`types`, `newline`, `glob`, `table`, `guess`, `convert`) with a re-export facade in `src/lib.rs`, reducing every file to under 310 lines.
-- [x] **Automated Tests**: Validated logic using 21 core unit test cases.
+- [x] **Automated Tests**: Validated logic and edge cases using 25 unit tests (+ 14 doctests).
 - [x] **Complete egui Removal & CLI Unification**: Removed unnecessary GUI logic and dependencies, optimizing MyNKF as a pure std CLI app.
+- [x] **Complete Removal of Unused `common_lib` Dependency**: Removed the unused `../common_lib` relative path dependency from `Cargo.toml` and CI/CD workflows, achieving true zero-external-dependency standalone builds.
 
 ### 1.2 CLI Utility (`mynkf` - `src/main.rs`)
 
-- [x] **CLI Flags**: Supports `-w`, `-s`, `-e`, `-g`, `--line`, `--size`, `-d`, `-c`, `-h`, `--help`, `-v`, and `--versio` parameters.
+- [x] **CLI Flags**: Supports `-w`, `-s`, `-e`, `-g`, `--line`, `--size`, `-d`, `-c`, `-h`, `--help`, `-v`, and `--versio` parameters (last-flag-wins precedence).
 - [x] **Two-Tier Help**: Separated output between concise help (`-h`) and comprehensive manual with examples (`--help`).
 - [x] **Standard Streams (Pipes)**: Handles `stdin` buffer reads and pipes outputs to `stdout` when file paths are omitted.
-- [x] **Batch File Runs**: Iterates and processes multiple glob-expanded files sequentially.
+- [x] **Batch File Runs**: Iterates and processes multiple glob-expanded files sequentially (exits with status code `1` on file I/O errors).
 - [x] **RustDoc & Documentation Polish**: Comprehensive doc comments with working doctests (14 doctests passing) across all types and functions, with full synchronization of documentation.
 
 ---
 
 ## 2. Short-Term Tasks (In Progress / Todo)
 
-- [ ] **Decouple Relative `common_lib` Dependency**:
-  - The project references `../common_lib` via relative path bindings. Evaluate submodules or decouple operations to simplify CI setup.
 - [ ] **Extend Test Coverage**:
-  - Write test cases for `expand_wildcard` edge cases (e.g. invalid chars in paths).
+  - Add CLI integration tests covering `stdin`/`stdout` pipelines, non-zero exit codes on file errors, and conflicting flag combinations (`-d` / `-c`).
 
 ---
 
@@ -48,4 +47,4 @@ This document maps out `MyNKF`'s current milestones ("Done"), pending works ("In
 - [ ] **Explicit CR Line Ending Flag**:
   - Add `--cr` conversion flags to target older macOS structures (detection is already active).
 - [ ] **WebAssembly (Wasm) Port of mynkf**:
-  - Compile the core library into Wasm to substitute the Web desktop simulator's script conversion logic with actual native Rust libraries.
+  - Make the core library Wasm-compatible so browser environments can execute the exact same native Rust detection and conversion logic.

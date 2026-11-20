@@ -56,7 +56,7 @@ pub fn decode_base64(s: &str) -> Vec<u8> {
 pub fn load_jis_table() -> Vec<u16> {
     let raw_bytes = decode_base64(JIS_TO_UNICODE_BASE64);
     let mut table = Vec::with_capacity(raw_bytes.len() / 2);
-    for chunk in raw_bytes.chunks_exact(2) {
+    for chunk in raw_bytes.as_chunks::<2>().0 {
         let code_point = ((chunk[0] as u16) << 8) | (chunk[1] as u16);
         table.push(code_point);
     }

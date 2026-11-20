@@ -13,7 +13,7 @@ Follow standard Rust style guidelines.
 | Target                                                 | Convention                                          | Example                                           |
 | :----------------------------------------------------- | :-------------------------------------------------- | :------------------------------------------------ |
 | **Variables, functions, methods, parameters, modules** | `snake_case` (lowercase with underscores)           | `guess_encoding`, `to_enc`, `utf8_score`          |
-| **Types, structures, enums, traits**                   | `PascalCase` (Capitalized words)                    | `Encoding`, `LineEnding`, `MyNkfGuiApp`           |
+| **Types, structures, enums, traits**                   | `PascalCase` (Capitalized words)                    | `Encoding`, `LineEnding`                          |
 | **Constants, static variables**                        | `SCREAMING_SNAKE_CASE` (uppercase with underscores) | `MAX_GLOB_FILES`, `JIS_TO_UNICODE_BASE64`         |
 | **Macros**                                             | `snake_case!`                                       | `todo!`, `matches!`                               |
 | **Documents, files**                                   | `UPPER_SNAKE_CASE` (uppercase with underscores)     | `ARCHITECTURE.md`, `INSTRUCTIONS.md`, `README.md` |

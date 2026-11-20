@@ -28,9 +28,7 @@ To minimize binary sizes and runtime overheads, we utilize a strictly selected t
 
 ### 2.2 Dependencies
 
-- **Zero External Dependencies (Pure Rust `std` Only)**: Implements custom JIS X 0208 mapping lookups, auto-detection heuristics, and shell expansions natively using only the Rust standard library. Zero third-party crate dependencies mean ultra-lightweight and lightning-fast compilations.
-- **Out-of-workspace Dependency**:
-  - `common_lib` (Referenced via relative path `../common_lib`): Shared library for shared operations.
+- **Zero External Dependencies (Pure Rust `std` Only)**: Implements custom JIS X 0208 mapping lookups, auto-detection heuristics, and wildcard glob expansion natively using only the Rust standard library. With zero third-party crates or external shared libraries, the project builds standalone in seconds.
 
 ### 2.3 Optimization Settings
 
@@ -138,11 +136,11 @@ When CLI version (`mynkf`) starts, data flows through the following pipeline:
 
 ### 4.2 Encoding Guess Heuristics
 
-Walks input buffers to evaluate grammar scores:
+Walks input buffers and determines the encoding using the following steps and scoring:
 
-1. **ASCII**: All bytes fall into `0x00`..=`0x7F`.
-2. **UTF-8**: Complies with UTF-8 byte syntax (proper lead and continuation bytes).
-3. **EUC-JP**: Complies with EUC-JP multi-byte ranges.
-4. **Shift_JIS**: Complies with Shift_JIS double-bytes or half-width Katakana (`0xA1`..=`0xDF`).
-5. **BINARY**: Violates grammar rules or contains control characters.
-Priority: `ASCII` ＞ `UTF-8` ＞ `EUC-JP` ＞ `Shift_JIS` ＞ `BINARY`. The highest match score dictates the final prediction.
+1. **Empty input**: Treated as `ASCII`.
+2. **Control character check (`BINARY`)**: Immediately returns `BINARY` (`Encoding::Unknown`) if null bytes (`0x00`) or binary-specific control bytes are detected.
+3. **ASCII**: Returns `ASCII` if all bytes fall within `0x00..=0x7F`.
+4. **UTF-8**: Returns `UTF-8` if strict validation via `std::str::from_utf8` succeeds.
+5. **Shift_JIS / EUC-JP Scoring**: Evaluates syntax validity and weighted JIS X 0208 Ku-Ten range scores (Ku 1–84, Ten 1–94). If only one is valid, it is chosen; if both are valid, the higher score wins (`Shift_JIS` on ties).
+6. **BINARY**: Returns `BINARY` (`Encoding::Unknown`) if neither encoding is valid.

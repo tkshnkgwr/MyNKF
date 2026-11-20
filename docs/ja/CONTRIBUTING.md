@@ -21,13 +21,11 @@
 
 ## 2. 開発環境のセットアップ
 
-本プロジェクトは、隣接するディレクトリにある `common_lib` に依存しています。
+本プロジェクトは外部クレートや別リポジトリへの依存を一切持たず、単体でクローン・ビルドできます。
 
 1. **リポジトリのクローン**:
 
    ```bash
-   # 親フォルダ上で並列にクローンします
-   git clone https://github.com/tkshnkgwr/common_lib.git
    git clone https://github.com/tkshnkgwr/MyNKF.git
    cd MyNKF
    ```

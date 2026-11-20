@@ -12,32 +12,16 @@ jobs:
   build-release:
     name: Build & Release (Windows)
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: MyNKF
 
     steps:
-      # MyNKFは親ディレクトリの ../common_lib に相対パスで依存しているため、
-      # ワークスペース内に MyNKF と common_lib を並行してチェックアウトします。
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          path: MyNKF
-
-      # 依存ライブラリである common_lib をクローンします。
-      # secrets.PAT が設定されていない場合は、デフォルトの github.token にフォールバックします。
-      - name: Checkout common_lib
-        uses: actions/checkout@v7
-        with:
-          repository: tkshnkgwr/common_lib
-          path: common_lib
-          token: ${{ secrets.PAT || github.token }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust Cache
-        uses: swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@v2
 
       # 1. CLI版のビルド
       - name: Build CLI release
@@ -53,6 +37,6 @@ jobs:
       - name: Create GitHub Release and Upload Asset
         uses: softprops/action-gh-release@v3
         with:
-          files: MyNKF/target/release/MyNKF-windows-x64.zip
+          files: target/release/MyNKF-windows-x64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

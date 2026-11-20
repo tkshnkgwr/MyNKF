@@ -163,44 +163,49 @@ fn test_wildcard_match() {
 #[test]
 fn test_expand_wildcard_normal() {
     use std::fs::File;
-    let p1 = "temp_normal_1.txt";
-    let p2 = "temp_normal_2.txt";
-    File::create(p1).unwrap();
-    File::create(p2).unwrap();
+    let temp_dir = std::env::temp_dir().join("mynkf_test_wildcard_normal");
+    std::fs::remove_dir_all(&temp_dir).ok();
+    std::fs::create_dir_all(&temp_dir).unwrap();
 
+    let p1 = temp_dir.join("temp_normal_1.txt");
+    let p2 = temp_dir.join("temp_normal_2.txt");
+    File::create(&p1).unwrap();
+    File::create(&p2).unwrap();
+
+    let pattern = temp_dir.join("temp_normal_*.txt");
     let mut files = Vec::new();
-    let res = expand_wildcard("temp_normal_*.txt", &mut files);
+    let res = expand_wildcard(pattern.to_str().unwrap(), &mut files);
     assert!(res.is_ok());
-    assert!(files.contains(&p1.to_string()));
-    assert!(files.contains(&p2.to_string()));
+    assert!(files.contains(&p1.to_string_lossy().into_owned()));
+    assert!(files.contains(&p2.to_string_lossy().into_owned()));
     assert_eq!(files.len(), 2);
 
-    std::fs::remove_file(p1).ok();
-    std::fs::remove_file(p2).ok();
+    std::fs::remove_dir_all(&temp_dir).ok();
 }
 
 /// ワイルドカード展開の上限件数（100件）超過エラー検出テスト
 #[test]
 fn test_glob_limit_exceeded() {
     use std::fs::File;
-    let mut created_paths = Vec::new();
+    let temp_dir = std::env::temp_dir().join("mynkf_test_glob_limit");
+    std::fs::remove_dir_all(&temp_dir).ok();
+    std::fs::create_dir_all(&temp_dir).unwrap();
+
     for i in 0..=100 {
-        let path_str = format!("temp_test_limit_{}.txt", i);
-        File::create(&path_str).unwrap();
-        created_paths.push(path_str);
+        let path = temp_dir.join(format!("temp_test_limit_{}.txt", i));
+        File::create(&path).unwrap();
     }
 
+    let pattern = temp_dir.join("temp_test_limit_*.txt");
     let mut files = Vec::new();
-    let res = expand_wildcard("temp_test_limit_*.txt", &mut files);
+    let res = expand_wildcard(pattern.to_str().unwrap(), &mut files);
     assert!(res.is_err());
     assert_eq!(
         res.unwrap_err(),
         format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES)
     );
 
-    for path in created_paths {
-        std::fs::remove_file(path).ok();
-    }
+    std::fs::remove_dir_all(&temp_dir).ok();
 }
 
 /// ファイルサイズ整形関数（format_size）の単位変換テスト
@@ -296,4 +301,65 @@ fn test_guess_encoding_binary_with_null() {
     let mut text_with_null = "こんにちは".as_bytes().to_vec();
     text_with_null.push(0x00);
     assert_eq!(guess_encoding(&text_with_null), Encoding::Unknown);
+}
+
+/// サロゲート外文字（U+10000以上）が下位16ビット切り捨てで別文字に化けないことの検証テスト
+#[test]
+fn test_encode_non_bmp_no_truncation() {
+    let table = load_jis_table();
+    let mut unicode_to_jis = HashMap::new();
+    for (idx, &uni) in table.iter().enumerate() {
+        if uni != 0 {
+            unicode_to_jis.insert(uni, idx as u16);
+        }
+    }
+
+    // U+13042 は下位16ビットが 0x3042（ひらがな「あ」）だが、BMP外なので ?? にフォールバックすべき
+    let non_bmp = char::from_u32(0x13042).unwrap();
+    let sjis = encode_from_unicode(&[non_bmp], Encoding::Sjis, &unicode_to_jis, false);
+    assert_eq!(sjis, b"??");
+
+    let euc = encode_from_unicode(&[non_bmp], Encoding::EucJp, &unicode_to_jis, false);
+    assert_eq!(euc, b"??");
+}
+
+/// EUC-JP デコード時に不正な第2バイトが含まれてもパニックせず安全に置換されることのテスト
+#[test]
+fn test_decode_eucjp_invalid_second_byte() {
+    let table = load_jis_table();
+    // 0xA4 の後に EUC-JP 範囲外の 0x20（スペース）が続く不正シーケンス
+    let invalid_euc = &[0xA4, 0x20, b'A'];
+    let decoded = decode_to_unicode(invalid_euc, Encoding::EucJp, &table);
+    assert_eq!(decoded, vec!['?', ' ', 'A']);
+}
+
+/// EUC-JP 補助漢字（0x8F）のデコードおよび末尾途切れの安全性テスト
+#[test]
+fn test_decode_eucjp_ss3_truncated() {
+    let table = load_jis_table();
+    let ss3_full = &[0x8F, 0xA1, 0xA1, b'X'];
+    assert_eq!(
+        decode_to_unicode(ss3_full, Encoding::EucJp, &table),
+        vec!['?', 'X']
+    );
+
+    let ss3_truncated = &[0x8F, 0xA1];
+    assert_eq!(
+        decode_to_unicode(ss3_truncated, Encoding::EucJp, &table),
+        vec!['?']
+    );
+}
+
+/// ワイルドカード未一致フォールバック時にもファイル数上限チェックが機能することのテスト
+#[test]
+fn test_expand_wildcard_no_match_limit() {
+    let mut files: Vec<String> = (0..MAX_GLOB_FILES)
+        .map(|i| format!("dummy_{}.txt", i))
+        .collect();
+    let res = expand_wildcard("nonexistent_pattern_*.zzz", &mut files);
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err(),
+        format!("Maximum limit of {} files exceeded.", MAX_GLOB_FILES)
+    );
 }

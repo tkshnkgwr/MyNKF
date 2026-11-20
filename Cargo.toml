@@ -1,6 +1,6 @@
 [package]
 name = "MyNKF"
-version = "1.6.4"
+version = "1.6.5"
 license = "GPL-3.0-or-later"
 edition = "2024"
 
@@ -13,8 +13,7 @@ name = "mynkf"
 path = "src/main.rs"
 
 [dependencies]
-# 共有ライブラリの参照追加
-common_lib = { path = "../common_lib" }
+# 外部依存ゼロ（100% Rust 標準ライブラリのみで構築）
 
 [profile.release]
 opt-level = 'z'       # Optimize for binary size

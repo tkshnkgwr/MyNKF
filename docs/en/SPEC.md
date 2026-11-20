@@ -2,15 +2,13 @@
 
 # Specification (SPEC.md)
 
-This document defines the latest functional specifications for `MyNKF` and its Web simulator, optimized for low-resource environments.
+This document defines the latest functional specifications for the `MyNKF` CLI utility, optimized for low-resource environments.
 
 ---
 
 ## 1. Overview
 
 `MyNKF` is a lightweight command-line utility that emulates the core functionality of the traditional Japanese character encoding conversion tool `nkf` (Network Kanji Filter) using 100% pure Rust standard library (`std`). It has no external crate dependencies, ensuring security, portability, and minimal resource usage (CPU, memory, and binary size).
-
-A "Web Desktop Simulator" is also provided to test the CLI and file conversions on a web browser, mimicking a borderless, transparent Windows environment.
 
 ---
 
@@ -47,20 +45,22 @@ MyNKF [options] [file...]
 | `-c`   | `--crlf`                | Forces newline characters to `CRLF`.                                                               |
 | `-h`   |                         | Displays concise help text and exits.                                                              |
 |        | `--help`                | Displays detailed help text with examples and exits.                                               |
-| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.4`), copyright, and license, then exits.                              |
+| `-v`   | `--version`, `--versio` | Displays version info (`v1.6.5`), copyright, and license, then exits.                              |
 
 > [!NOTE]
 > `--versio` (missing the trailing `n`) is an alias maintained for backward compatibility with the original `nkf` behavior (front-matching command parsers and historical typo compatibility).
 
 - **Behavior with No Encoding Options**:
-  - If no encoding flags (`-w`, `-s`, `-e`) are passed, the detected encoding of the input is preserved in the output.
+  - If no encoding flags (`-w`, `-s`, `-e`) are passed, raw byte-level newline replacement (`convert_line_endings_raw`) is applied without re-encoding, preserving the input encoding completely.
   - This allows options like `-d` (LF) or `-c` (CRLF) to normalize newline endings without altering the file's character encoding (consistent with native `nkf`).
+- **Repeated Flag Precedence**:
+  - If conflicting flags such as `-w`/`-s`/`-e` or `-d`/`-c` are passed multiple times, the last specified flag wins.
 - **Standard Input Fallback**:
   - If no file paths are provided, standard input (`stdin`) is read and processed output is directed to standard output (`stdout`).
-- **Multi-file / Wildcard Support**:
-  - Multiple file paths can be passed as arguments, which are processed sequentially.
+- **Multi-file / Wildcard Support & Exit Code**:
+  - Multiple file paths can be passed as arguments, which are processed sequentially. If any file fails to open or read, an error is written to `stderr`, remaining files continue to be processed, and the process exits with status code `1`.
   - **Wildcard globbing**: Characters like `*` and `?` are expanded natively by the application even on Windows shells (PowerShell/cmd.exe) that do not perform expansion.
-  - **Limit**: If the total files exceed **100**, the process displays an error and aborts immediately.
+  - **Limit**: If the total files exceed **100**, the process displays an error and aborts immediately with exit code `1`.
 
 ---
 
@@ -68,13 +68,14 @@ MyNKF [options] [file...]
 
 ### 4.1 Encoding Detection (Guess)
 
-Analyzes bytes to determine character encodings based on character patterns (valid multi-byte sequences) in the following order of priority:
+Analyzes bytes to determine character encodings using the following steps and scoring:
 
-1. **ASCII**: All bytes are within the `0x00` to `0x7F` range.
-2. **UTF-8**: Composed of valid UTF-8 sequences (2-4 bytes long, with proper continuation bytes `0x80` to `0xBF`).
-3. **EUC-JP**: Fits EUC-JP multi-byte ranges (e.g., `0xA1..=0xFE`).
-4. **Shift_JIS**: Fits Shift_JIS byte patterns (lead bytes `0x81..=0x9F` / `0xE0..=0xFC` and trail bytes `0x40..=0x7E` / `0x80..=0xFC`) or half-width Katakana (`0xA1..=0xDF`).
-5. **BINARY**: Contains obvious control characters or fails to match any text encodings listed above.
+1. **Empty input**: Treated as `ASCII`.
+2. **Control character check (`BINARY`)**: Immediately returns `BINARY` (`Encoding::Unknown`) if null bytes (`0x00`) or binary-specific control bytes are detected.
+3. **ASCII**: Returns `ASCII` if all bytes are within `0x00..=0x7F`.
+4. **UTF-8**: Returns `UTF-8` if strict validation via `std::str::from_utf8` passes.
+5. **Shift_JIS / EUC-JP Scoring**: Evaluates syntax validity and weighted JIS X 0208 Ku-Ten range scores (Ku 1–84, Ten 1–94) for both Shift_JIS (including half-width Katakana `0xA1..=0xDF`) and EUC-JP (including SS2 `0x8E` / SS3 `0x8F`). If both are valid, the higher score wins (`Shift_JIS` on ties).
+6. **BINARY**: Returns `BINARY` if the input does not match any supported text encoding.
 
 #### Guess Output Formats
 
@@ -101,18 +102,6 @@ Output changes depending on input type and active options:
 
 ### 4.2 Encoding Table and Fallback
 
-- **JIS X 0208 Mapping Table**: Static array mapping lookup table embedded natively.
-- **Half-width Katakana**: Shifts and preserves half-width Katakana bytes (`0xA1` to `0xDF`) correctly without corrupting or forcing full-width conversion.
-- **Fallback**: Unmapped characters fallback to `??` (two question marks) to avoid process interruption.
-
----
-
-## 5. Web Desktop Simulator Specs
-
-The simulator running on Web browsers provides:
-
-- **Design**: Compact layouts with bold headers, transparent window emulations, and top-most display behavior.
-- **Drag & Drop**: Auto-detects and converts files dragged directly into the simulator window.
-- **CLI Shell**: Emulates `MyNKF` commands inside a terminal-like environment.
-- **Downloads**: Immediate download links for converted outputs.
-- **Obsidian Export**: One-click copy/download of source codes in Markdown.
+- **JIS X 0208 Mapping Table**: Complete 6,953-character JIS X 0208 mapping table embedded natively in Base64 form.
+- **Half-width Katakana**: Preserves half-width Katakana (`0xA1..=0xDF` in Shift_JIS) accurately across UTF-8 and EUC-JP without forcing full-width conversion.
+- **Fallback**: Unmapped characters, emojis, and non-BMP characters (`U+10000` and above) safely substitute with `??` (two question marks) without panicking.

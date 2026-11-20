@@ -13,7 +13,7 @@ Rustの標準的なコードスタイルガイドラインに従います。
 | 対象                                       | 規則                                            | 例                                                   |
 | :----------------------------------------- | :---------------------------------------------- | :--------------------------------------------------- |
 | **変数、関数、メソッド、引数、モジュール** | `snake_case` (小文字＋アンダースコア)           | `guess_encoding`, `to_enc`, `utf8_score`             |
-| **型、構造体、列挙型、トレイト**           | `PascalCase` (単語の頭文字が大文字)             | `Encoding`, `LineEnding`, `MyNkfGuiApp`              |
+| **型、構造体、列挙型、トレイト**           | `PascalCase` (単語の頭文字が大文字)             | `Encoding`, `LineEnding`                             |
 | **定数、スタティック定数**                 | `SCREAMING_SNAKE_CASE` (大文字＋アンダースコア) | `MAX_GLOB_FILES`, `JIS_TO_UNICODE_BASE64`            |
 | **マクロ**                                 | `snake_case!`                                   | `todo!`, `matches!`                                  |
 | **ドキュメント・ファイル名**               | `UPPER_SNAKE_CASE` (大文字＋アンダースコア)     | `ARCHITECTURE.md`, `INSTRUCTIONS.md`, `README_JA.md` |

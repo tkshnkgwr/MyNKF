@@ -155,21 +155,30 @@ pub fn decode_to_unicode(bytes: &[u8], from_enc: Encoding, table: &[u16]) -> Vec
                         i += 1;
                     }
                 } else if b1 == 0x8F {
+                    // JIS X 0212 補助漢字（未マッピングのためフォールバック）
                     chars.push('?');
-                    chars.push('?');
-                    i += 3;
+                    if i + 2 < bytes.len() {
+                        i += 3;
+                    } else {
+                        i = bytes.len();
+                    }
                 } else if (0xA1..=0xFE).contains(&b1) {
                     if i + 1 < bytes.len() {
                         let b2 = bytes[i + 1];
-                        let ku = b1 - 0xA0;
-                        let ten = b2 - 0xA0;
-                        let idx = ((ku as usize - 1) * 94) + (ten as usize - 1);
-                        if idx < table.len() && table[idx] != 0 {
-                            chars.push(std::char::from_u32(table[idx] as u32).unwrap_or('?'));
+                        if (0xA1..=0xFE).contains(&b2) {
+                            let ku = b1 - 0xA0;
+                            let ten = b2 - 0xA0;
+                            let idx = ((ku as usize - 1) * 94) + (ten as usize - 1);
+                            if idx < table.len() && table[idx] != 0 {
+                                chars.push(std::char::from_u32(table[idx] as u32).unwrap_or('?'));
+                            } else {
+                                chars.push('?');
+                            }
+                            i += 2;
                         } else {
                             chars.push('?');
+                            i += 1;
                         }
-                        i += 2;
                     } else {
                         chars.push('?');
                         i += 1;
@@ -276,26 +285,26 @@ pub fn encode_from_unicode(
                 let mut buf = [0; 4];
                 let s = c.encode_utf8(&mut buf);
                 bytes.extend_from_slice(s.as_bytes());
-            } else {
-                let uni_u16 = uni as u16;
-                if let Some(&idx) = unicode_to_jis.get(&uni_u16) {
-                    let ku = (idx / 94) + 1;
-                    let ten = (idx % 94) + 1;
-                    let e1 = (ku + 0xA0) as u8;
-                    let e2 = (ten + 0xA0) as u8;
+            } else if let Some(&idx) = u16::try_from(uni)
+                .ok()
+                .and_then(|uni_u16| unicode_to_jis.get(&uni_u16))
+            {
+                let ku = (idx / 94) + 1;
+                let ten = (idx % 94) + 1;
+                let e1 = (ku + 0xA0) as u8;
+                let e2 = (ten + 0xA0) as u8;
 
-                    if to_enc == Encoding::EucJp {
-                        bytes.push(e1);
-                        bytes.push(e2);
-                    } else if to_enc == Encoding::Sjis {
-                        let (s1, s2) = eucjp_to_sjis(e1, e2);
-                        bytes.push(s1);
-                        bytes.push(s2);
-                    }
-                } else {
-                    bytes.push(0x3F);
-                    bytes.push(0x3F);
+                if to_enc == Encoding::EucJp {
+                    bytes.push(e1);
+                    bytes.push(e2);
+                } else if to_enc == Encoding::Sjis {
+                    let (s1, s2) = eucjp_to_sjis(e1, e2);
+                    bytes.push(s1);
+                    bytes.push(s2);
                 }
+            } else {
+                bytes.push(0x3F);
+                bytes.push(0x3F);
             }
         }
     }

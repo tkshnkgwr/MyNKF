@@ -4,6 +4,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.5] - 2026-11-20
+
+### Removed / Changed
+
+- **Complete Removal of Unused `common_lib` Dependency**:
+  - Removed the unused `common_lib = { path = "../common_lib" }` dependency from `Cargo.toml`, achieving a truly **100% Rust standard library (`std`) only, zero-external-dependency** build.
+  - Simplified `.github/workflows/ci.yml` and `.github/workflows/release.yml` by removing the `common_lib` checkout step and adding `clippy` / `fmt` checks to CI.
+- **Full Documentation Refresh (`README.md`, `README_JA.md`, and `docs/`)**:
+  - Expanded `README.md` and `README_JA.md` with key features, standalone build instructions, CLI option tables, practical examples, and a full documentation index.
+  - Synchronized `SPEC.md`, `ARCHITECTURE.md`, `DIAGRAM.md`, `FOOTPRINTS.md`, `TESTING.md`, `TODO.md`, `CONTRIBUTING.md`, and `INSTRUCTIONS.md` (both English and Japanese), removing outdated Web simulator / GUI references and aligning all algorithms and measurements with the implementation.
+
+### Fixed
+
+- **Fixed Non-BMP Character Truncation Bug (`src/convert.rs`)**:
+  - Replaced `uni as u16` with `u16::try_from(uni)` in `encode_from_unicode` so non-BMP characters (`U+10000` and above) safely fall back to `??` instead of aliasing to JIS X 0208 characters.
+- **Fixed EUC-JP Decode Underflow Panic (`src/convert.rs`)**:
+  - Added strict second-byte bounds checking (`0xA1..=0xFE`) in `decode_to_unicode` and made SS3 (`0x8F`) fallback/truncation handling safe.
+- **Improved CLI Precedence, Exit Codes, and Lazy Table Initialization (`src/main.rs`)**:
+  - Made `-d` (`--lf`) and `-c` (`--crlf`) follow last-flag-wins semantics.
+  - Skipped JIS table and reverse `HashMap` construction in `--guess` and newline-only modes.
+  - Returned non-zero exit code (`1`) when file open or read errors occur.
+- **Glob Limit Check & Clippy Compliance (`src/glob.rs`, `src/table.rs`)**:
+  - Enforced `MAX_GLOB_FILES` check on unmatched wildcard fallbacks.
+  - Updated `chunks_exact(2)` to `as_chunks::<2>().0` for Rust 1.100+ Clippy compliance.
+- **Safer & Expanded Unit Tests (`src/tests.rs`)**:
+  - Isolated temporary glob test files under `std::env::temp_dir()` and added 4 regression tests (25 unit tests + 14 doctests passing).
+
+---
+
 ## [1.6.4] - 2026-10-27
 
 ### Changed

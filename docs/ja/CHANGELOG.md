@@ -4,6 +4,35 @@
 
 すべての変更履歴をここに記録します。
 
+## [1.6.5] - 2026-11-20
+
+### 削除・変更
+
+- **未使用の共有ライブラリ `common_lib` 依存の完全排除**:
+  - `Cargo.toml` から未使用だった `common_lib = { path = "../common_lib" }` を削除し、文字通り **100% Rust 標準ライブラリのみ（外部依存ゼロ）** の構成へ統一。
+  - `.github/workflows/ci.yml` および `.github/workflows/release.yml` から `common_lib` チェックアウト手順を削除し、単体リポジトリ構成へ簡素化（`ci.yml` には `clippy` / `fmt` 検証も追加）。
+- **`README.md` / `README_JA.md` および `docs/` 全ドキュメントの最新化**:
+  - `README.md` / `README_JA.md` に主な特徴、ビルド手順、CLI オプション一覧、使用例、`docs/` 各ドキュメントへのリンク一覧を整備。
+  - `SPEC.md`, `ARCHITECTURE.md`, `DIAGRAM.md`, `FOOTPRINTS.md`, `TESTING.md`, `TODO.md`, `CONTRIBUTING.md`, `INSTRUCTIONS.md`（日英両版）から廃止済み Web シミュレータ / GUI 残骸や実装との不整合を解消し、最新の実測値・仕様へ完全同期。
+
+### 修正
+
+- **非 BMP 文字（`U+10000` 以上）エンコード時の上位ビット切り捨てバグを修正 (`src/convert.rs`)**:
+  - `encode_from_unicode` における `uni as u16` キャストを `u16::try_from(uni)` に改め、サロゲート外文字が別の JIS X 0208 文字へ化ける不具合を解消（安全に `??` へフォールバック）。
+- **EUC-JP 不正第 2 バイトデコード時の整数アンダーフロー・パニックを修正 (`src/convert.rs`)**:
+  - `decode_to_unicode` の EUC-JP 処理に第 2 バイトの範囲チェック（`0xA1..=0xFE`）を追加し、補助漢字（`0x8F`）のフォールバックおよび末尾途切れ処理を安全化。
+- **CLI オプション優先順位・終了コード・テーブル遅延構築の改善 (`src/main.rs`)**:
+  - `-d` (`--lf`) / `-c` (`--crlf`) の重複指定時を後勝ちに統一。
+  - `--guess` モードおよび改行変換のみモードで不要な JIS テーブル / `HashMap` 構築をスキップするよう最適化。
+  - ファイルオープン・読み込みエラー時に終了コード `1` で終了するよう修正。
+- **ワイルドカード上限チェックおよび Clippy 対応 (`src/glob.rs`, `src/table.rs`)**:
+  - ワイルドカード未一致フォールバック時にも `MAX_GLOB_FILES` 上限チェックを適用。
+  - Rust 1.100+ の Clippy リント（`chunks_exact_to_as_chunks`）に対応し `as_chunks::<2>().0` へ更新。
+- **単体テストの安全化および拡充 (`src/tests.rs`)**:
+  - ワイルドカード展開テストの一時ファイル作成先を `std::env::temp_dir()` 配下へ分離し、境界ケース検証テスト 4 件を追加（計 25 件 + Doctest 14 件全合格）。
+
+---
+
 ## [1.6.4] - 2026-10-27
 
 ### 変更

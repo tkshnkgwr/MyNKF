@@ -225,8 +225,10 @@ fn main() -> io::Result<()> {
             is_size = true;
         } else if arg == "-d" || arg == "--lf" {
             force_lf = true;
+            force_crlf = false;
         } else if arg == "-c" || arg == "--crlf" {
             force_crlf = true;
+            force_lf = false;
         } else if arg.starts_with('-') {
             // 不明なオプションはヘルプを表示して終了
             eprintln!("Unknown option: {}", arg);
@@ -246,13 +248,19 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let table = load_jis_table();
-    let mut unicode_to_jis = HashMap::new();
-    for (idx, &uni) in table.iter().enumerate() {
-        if uni != 0 {
-            unicode_to_jis.insert(uni, idx as u16);
+    // 文字コード変換が必要な場合のみ JIS マッピングテーブルを構築（--guess や改行変換のみを高速化）
+    let (table, unicode_to_jis) = if !is_guess && has_enc_option {
+        let tbl = load_jis_table();
+        let mut map = HashMap::with_capacity(tbl.len());
+        for (idx, &uni) in tbl.iter().enumerate() {
+            if uni != 0 {
+                map.insert(uni, idx as u16);
+            }
         }
-    }
+        (tbl, map)
+    } else {
+        (Vec::new(), HashMap::new())
+    };
 
     if files.is_empty() {
         // 標準入力からの読込
@@ -282,17 +290,20 @@ fn main() -> io::Result<()> {
         }
     } else {
         // ファイルからの読込
+        let mut had_error = false;
         for filename in &files {
             let mut file = match File::open(filename) {
                 Ok(f) => f,
                 Err(e) => {
                     eprintln!("Error opening file '{}': {}", filename, e);
+                    had_error = true;
                     continue;
                 }
             };
             let mut buffer = Vec::new();
             if let Err(e) = file.read_to_end(&mut buffer) {
                 eprintln!("Error reading file '{}': {}", filename, e);
+                had_error = true;
                 continue;
             }
 
@@ -326,6 +337,9 @@ fn main() -> io::Result<()> {
             }
         }
         io::stdout().flush()?;
+        if had_error {
+            std::process::exit(1);
+        }
     }
 
     Ok(())
